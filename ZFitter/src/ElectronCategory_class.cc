@@ -1,6 +1,5 @@
 //#define DEBUG
 #include "../interface/ElectronCategory_class.hh"
-#include "../../ZNtupleDumper/interface/eleIDMap.h"
 
 #define OldDefinitions
 #define GAP
@@ -93,8 +92,6 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 {
 	TCut cut_string;
 //	cut_string.Clear();
-
-	eleIDMap eleID_map;
 
 	std::set<TString> cutSet;
 	// events %2 == 0 are dropped
@@ -824,28 +821,6 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			continue;
 		}
 
-
-		//--------------- eleID
-		if(string.Contains("eleID_")) {
-			std::unique_ptr<TObjArray> splitted(string.Tokenize("_"));
-			if(splitted->GetEntries() < 2) {
-				std::cerr << "ERROR: incomplete eleID region definition" << std::endl;
-				continue;
-			}
-			TObjString *Objstring1 = (TObjString *) splitted->At(1);
-
-			TString string1 = Objstring1->GetString();
-			string1.ReplaceAll("|", "-");
-			//Note for expert users: the original eleID name has "-", hence to avoid splitting "-" are replaced with "|" by ZFitter.cpp
-			//This is the moment where the "|" are again mapped in their righteous "-" (jeux de cartes)
-			string1.Form("%d", eleID_map.eleIDmap[string1.Data()]);
-			TCut cutEle1("(eleID_ele1 & " + string1 + ")==" + string1);
-			TCut cutEle2("(eleID_ele2 & " + string1 + ")==" + string1);
-
-			cut_string += cutEle1 && cutEle2;
-			cutSet.insert(TString(cutEle1 && cutEle2));
-			continue;
-		}
 
 		//--------------- iSM
 		if(string.Contains("iSM")) {
