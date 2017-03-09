@@ -9,7 +9,6 @@ ifdef cmssw_EX_LIBDIR
 MODULES_EXT+=-L$(cmssw_EX_LIBDIR)
 endif
 
-MODULESEoP=$(shell ls $(EoPDir)/$(SRCDIR)/*.cc | sed "s|.cc|.o|;s|$(SRCDIR)|$(OBJ_DIR)|g")
 #### Make the list of dependencies for a particular module
 
 default: $(MODULES) ZFitter.exe
@@ -36,16 +35,14 @@ lib/%.o: $(SRCDIR)/%.cc
 ###### Main program
 ZFitter.exe: $(BUILDDIR)/ZFitter.exe
 $(BUILDDIR)/ZFitter.exe:  $(BUILDDIR)/ZFitter.cpp $(MODULES)
-	cd $(EoPDir) && $(MAKE)
 	@echo "---> Making ZFitter $(COMPILE.exe)"
-	@if [ "$(SCRAMTOOL)" == "1" ]; then g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES)  $(MODULESEoP) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
-	-lboost_program_options -lTreePlayer; else g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(MODULES_EXT) -lFWCoreParameterSet $(MODULESEoP) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
+	@if [ "$(SCRAMTOOL)" == "1" ]; then g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
+	-lboost_program_options -lTreePlayer; else g++ $(CXXFLAGS) $(INCLUDE) $(MAKEDEPEND) -o $@ $< $(MODULES) $(MODULES_EXT) -lFWCoreParameterSet $(LIB) $(ROOT_LIB) $(ROOFIT_LIB) $(ROOSTAT_LIB) $(ROOT_FLAGS) \
 	-lboost_program_options -lTreePlayer ; fi
 
 clean:
 	rm -f $(OBJ_DIR)/*.o
 	rm -f $(OBJ_DIR)/*.d
 	rm -f $(BUILDDIR)/*.exe
-	cd $(EoPDir); make clean
 
 

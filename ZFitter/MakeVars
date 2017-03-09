@@ -31,7 +31,6 @@ SRCDIR=./src
 BUILDDIR=./bin
 OBJ_DIR=./lib
 
-EoPDir:=../EOverPCalibration
 #SCRAM_ARCH=`scram arch`
 #################
 INCLUDE=-I$(INCLUDEDIR) $(FWCORE_INCLUDE) -isystem$(ROOT_INCLUDE)   -I$(ROOFIT_INCLUDE) -I$(BOOST)/include
