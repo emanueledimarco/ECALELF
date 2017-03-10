@@ -1,4 +1,4 @@
-eos_path=/eos/project/c/cms-ecal-calibration
+eos_path=/data1/emanuele/wmass/electron_smearer_trees
 puName(){
     ## pileup reweight name
     # $1 = configFile
@@ -27,11 +27,11 @@ mcName(){
     ## create MC name
     # $1 = configFile
     if [ -z "${mcName}" ];then
-	mcCount=`grep -v '#' $1 | grep  'selected' | grep '^s' | cut -f 3 |wc -l` #counts how many MC you have
-	mcTags=`grep -v '#' $1  | grep  'selected' | grep '^s' | cut -f 1 | sort | uniq` #this is s1, s2, ecc...
+	mcCount=`grep -v '#' $1 | grep  'treeProducerWMassEle' | grep '^s' | cut -f 3 |wc -l` #counts how many MC you have
+	mcTags=`grep -v '#' $1  | grep  'treeProducerWMassEle' | grep '^s' | cut -f 1 | sort | uniq` #this is s1, s2, ecc...
 	for mcTag in ${mcTags}
 	  do
-	  mcFiles=`grep -v '#' $1  | grep  'selected' | grep "^${mcTags}" | cut -f 3`
+	  mcFiles=`grep -v '#' $1  | grep  'treeProducerWMassEle' | grep "^${mcTags}" | cut -f 3`
 	  for mcFile in $mcFiles
 	    do
 	    mcName=`basename $mcFile  | sed 's|\(.*\)-\([0-9]*-[0-9]*\).root|\1 \2|;s|\(.*\)-\(allRange\).root|\1 \2|'`
@@ -61,14 +61,14 @@ mkSmearerCatSignal(){
 	echo "./bin/ZFitter.exe -f ${configFile} --regionsFile=$1 --saveRootMacro  --addBranch=smearerCat_s"
  	./bin/ZFitter.exe -f ${configFile} --regionsFile=$1  \
  	    --saveRootMacro  --addBranch=smearerCat_s || exit 1 
-	for tag in `grep "^s" ${configFile} | grep selected | awk -F" " ' { print $1 } '`
+	for tag in `grep "^s" ${configFile} | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
 	do
 	    mv tmp/smearerCat_${basenameConfig}_${tag}-`basename $configFile .dat`.root ${eos_path}/data/smearerCat/ || exit 1
 	done
     fi
 
     #Once cat root files are created, just write them in the validation file and be sure they are unique
-    for tag in `grep "^s" ${configFile} | grep selected | awk -F" " ' { print $1 } '`
+    for tag in `grep "^s" ${configFile} | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
     do
 	is_already_written=$(cat $2 |grep smearerCat_${basenameConfig}_${tag}|wc -l)
 	if [ "${is_already_written}" = "1" ]; then
@@ -100,7 +100,7 @@ mkSmearerCatData(){
 
     #TO-DO -> be sure that the writing is unique to avoid stupid crashes
     #Once cat root files are created, just write them in the validation file and be sure they are unique
-    for tag in `grep "^d" $3 | grep selected | awk -F" " ' { print $1 } '`
+    for tag in `grep "^d" $3 | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
     do
 	is_already_written=$(cat $3 |grep smearerCat_${basenameConfig}_${tag}|wc -l)
 	if [ "${is_already_written}" = "1" ]; then
