@@ -554,8 +554,6 @@ TTree* addBranch_class::AddBranch_smearerCat(TChain* originalChain, TString tree
                           originalChain->SetBranchStatus(*itr, 1);
 		} 
                 originalChain->SetBranchStatus("LepGood_r9", 1);
-                originalChain->SetBranchStatus("LepGood_pdgId", 1);
-                originalChain->SetBranchStatus("LepGood_pt", 1);
 		if(    cutter._corrEle == true) originalChain->SetBranchStatus("scaleEle", 1);
 
 
@@ -570,7 +568,7 @@ TTree* addBranch_class::AddBranch_smearerCat(TChain* originalChain, TString tree
 				TTreeFormula *selector = new TTreeFormula("selector-" + (region), cutter.GetCut(region + oddString, isMC), originalChain);
 				catSelectors.push_back(std::pair<TTreeFormula*, TTreeFormula*>(selector, NULL));
 				//selector->Print();
-				std::cout << "THE CUT: " << cutter.GetCut(region + oddString, isMC) << std::endl;
+				//std::cout << "THE CUT: " << cutter.GetCut(region + oddString, isMC) << std::endl;
 				//exit(0);
 			} else {
 				TString region1 = *region_ele1_itr;
@@ -603,9 +601,6 @@ TTree* addBranch_class::AddBranch_smearerCat(TChain* originalChain, TString tree
 	          << "\t" << "with " << entries << " entries" << std::endl;
 	std::cerr << "[00%]";
 
-        TTreeFormula *twoLeps = new TTreeFormula("twoLeps","nLepGood>1",originalChain);
-        TTreeFormula *twoElectrons = new TTreeFormula("twoElectrons","abs(LepGood_pdgId[0])==11 && abs(LepGood_pdgId[1])==11",originalChain);
-                          
 	for(Long64_t jentry = 0; jentry < entries; jentry++) {
 		originalChain->GetEntry(jentry);
 		if (originalChain->GetTreeNumber() != treenumber) {
@@ -622,11 +617,6 @@ TTree* addBranch_class::AddBranch_smearerCat(TChain* originalChain, TString tree
                                 }
 			}
 		}
-                twoElectrons->UpdateFormulaLeaves();
-                twoElectrons->GetNdata();
-
-                if(twoLeps->EvalInstance() == false) continue;
-                if(twoElectrons->EvalInstance() == false) continue;
 
 		int evIndex = -1;
 		bool _swap = false;

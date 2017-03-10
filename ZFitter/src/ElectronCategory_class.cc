@@ -35,6 +35,7 @@ TCut ElectronCategory_class::GetCut(TString region, bool isMC, int nEle, bool co
 	cut.Clear();
 
 	std::set<TString> cutSet = GetCutSet(region);
+        
 	for(std::set<TString>::const_iterator itr = cutSet.begin();
 	        itr != cutSet.end();
 	        itr++) {
@@ -98,6 +99,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 	TCut odd_cut = "evt%2 !=0";
 	TCut even_cut = "evt%2 ==0";
 
+
+        TCut LepEle_ele1_cut = "abs(LepGood_pdgId_ele1)==11";
+        TCut LepEle_ele2_cut = "abs(LepGood_pdgId_ele2)==11";
+        TCut LepEle_cut = LepEle_ele1_cut && LepEle_ele2_cut;
 
 	//Need to implement this part for Pt
 	//
@@ -231,6 +236,9 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 	*/
 
 	std::unique_ptr<TObjArray> region_splitted(region.Tokenize("-"));
+
+        cut_string += LepEle_cut;
+        cutSet.insert(TString(LepEle_cut));
 
 	for(int i = 0 ; i < region_splitted->GetEntries(); i++) {
 		TString string;
