@@ -128,7 +128,7 @@ std::vector<TString> ReadRegionsFromFile(TString fileName)
 
 //------------------------------------------------------------
 /**
- * This function reassociates the chains as friends of the "selected" tree.
+ * This function reassociates the chains as friends of the "treeProducerWMassEle" tree.
  *
  * This function should be run when new chains or files are added to the tagChainMap.
  *
@@ -140,15 +140,15 @@ void UpdateFriends(tag_chain_map_t& tagChainMap, TString regionsFileNameTag)
 	for(tag_chain_map_t::const_iterator tag_chain_itr = tagChainMap.begin();
 	        tag_chain_itr != tagChainMap.end();
 	        tag_chain_itr++) {
-		// take the selected tree of that tag
-		TChain * chain = (tag_chain_itr->second.find("selected"))->second.get();
+		// take the treeProducerWMassEle tree of that tag
+		TChain * chain = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 
 		// loop over all the trees
 		for(chain_map_t::const_iterator chain_itr = tag_chain_itr->second.begin();
 		        chain_itr != tag_chain_itr->second.end();
 		        chain_itr++) {
 
-			if(chain_itr->first != "selected") { //except the selected
+			if(chain_itr->first != "treeProducerWMassEle") { //except the treeProducerWMassEle
 				if(chain->GetFriend(chain_itr->first) == NULL) {
 					std::cout << "[STATUS] Adding friend branch: " << chain_itr->first
 					          << " to tag " << tag_chain_itr->first << std::endl;
@@ -168,7 +168,7 @@ void UpdateFriends(tag_chain_map_t& tagChainMap, TString regionsFileNameTag)
 //------------------------------------------------------------
 void Dump(tag_chain_map_t& tagChainMap, TString tag = "s", Long64_t firstentry = 0)
 {
-	(tagChainMap[tag])["selected"]->Scan("etaEle:R9Ele:energySCEle_regrCorrSemiParV5_pho/cosh(etaSCEle):smearerCat:catName", "", "col=5:4:5:3:50", 5, firstentry);
+	(tagChainMap[tag])["treeProducerWMassEle"]->Scan("etaEle:R9Ele:energySCEle_regrCorrSemiParV5_pho/cosh(etaSCEle):smearerCat:catName", "", "col=5:4:5:3:50", 5, firstentry);
 }
 
 //------------------------------------------------------------
@@ -208,6 +208,7 @@ void MergeSamples(tag_chain_map_t& tagChainMap, TString regionsFileNameTag, TStr
 
 		}
 	}
+        std::cout << "crasca 1 " << std::endl;
 	UpdateFriends(tagChainMap, regionsFileNameTag);
 	return;
 }
@@ -312,7 +313,7 @@ int main(int argc, char **argv)
 	//
 	("selection", po::value<string>(&selection)->default_value("loose25nsRun22016Moriond"), "") //"cutBasedElectronID-Spring15-25ns-V1-standalone-loose"
 	("commonCut", po::value<string>(&commonCut)->default_value("isEle-Et_25"), "")
-	("invMass_var", po::value<string>(&invMass_var)->default_value("invMass_ECAL_ele"), "")
+	("invMass_var", po::value<string>(&invMass_var)->default_value("mZ1"), "")
 	("invMass_min", po::value<float>(&invMass_min)->default_value(65.), "")
 	("invMass_max", po::value<float>(&invMass_max)->default_value(115.), "")
 	("invMass_binWidth", po::value<float>(&invMass_binWidth)->default_value(0.25), "Smearing binning")
@@ -636,7 +637,7 @@ int main(int argc, char **argv)
 		        tag_chain_itr++) {
 			if(tag_chain_itr->first.CompareTo("d") == 0 || tag_chain_itr->first.CompareTo("s") == 0) continue;
 			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = tag_chain_itr->second.find("selected")->second.get();
+			TChain * ch = tag_chain_itr->second.find("treeProducerWMassEle")->second.get();
 
 			TString filename = "tmp/r9Weight_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
 			std::cout << "[STATUS] Saving r9Weights tree to root file:" << filename << std::endl;
@@ -682,7 +683,7 @@ int main(int argc, char **argv)
 			if(tag_chain_itr->first.Contains("d")) continue; /// \todo ZPtWeight only on MC! because from PdfWeights, to make it more general
 			if(tag_chain_itr->first.CompareTo("d") == 0 || tag_chain_itr->first.CompareTo("s") == 0) continue;
 			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = (tag_chain_itr->second.find("selected"))->second.get();
+			TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 
 			TString filename = "tmp/ZPtWeight_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
 			std::cout << "[STATUS] Saving r9Weights tree to root file:" << filename << std::endl;
@@ -740,7 +741,7 @@ int main(int argc, char **argv)
 			        tag_chain_itr != tagChainMap.end();
 			        tag_chain_itr++) {
 				if(tag_chain_itr->first.CompareTo("s") == 0 || !tag_chain_itr->first.Contains("s")) continue;
-				TChain * ch = (tag_chain_itr->second.find("selected"))->second.get();
+				TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 				if((tag_chain_itr->second.count("pileup"))) continue;
 				TString treeName = "pileup";
 				TString filename = "tmp/mcPUtree" + tag_chain_itr->first + ".root";
@@ -774,7 +775,7 @@ int main(int argc, char **argv)
 		        tag_chain_itr++) {
 			if(tag_chain_itr->first.CompareTo("d") == 0 || !tag_chain_itr->first.Contains("d")) continue; //only data
 			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = (tag_chain_itr->second.find("selected"))->second.get();
+			TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 
 			TString filename = "tmp/scaleEle_" + corrEleType + "_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
 			std::cout << "[STATUS] Saving electron scale corrections to root file:" << filename << std::endl;
@@ -818,7 +819,7 @@ int main(int argc, char **argv)
 		        tag_chain_itr++) {
 			if(tag_chain_itr->first.CompareTo("s") == 0 || !tag_chain_itr->first.Contains("s")) continue; //only data
 			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = (tag_chain_itr->second.find("selected"))->second.get();
+			TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 
 			TString filename = "tmp/smearEle_" + smearEleType + "_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
 			std::cout << "[STATUS] Saving electron smearings to root file:" << filename << std::endl;
@@ -853,7 +854,7 @@ int main(int argc, char **argv)
 			chain_itr->second->Add(filename);
 		}
 		// \todo need the data part in case of needs
-	}
+        }
 
 
 	addBranch_class newBrancher;
@@ -863,6 +864,7 @@ int main(int argc, char **argv)
 	for( std::vector<string>::const_iterator branch_itr = branchList.begin();
 	        branch_itr != branchList.end();
 	        branch_itr++) {
+          std::cout << "crasca 2" << std::endl;
 		UpdateFriends(tagChainMap, regionsFileNameTag);
 
 		TString treeName = *branch_itr;
@@ -889,7 +891,7 @@ int main(int argc, char **argv)
 			if((tag_chain_itr->first.CompareTo("s") == 0 || tag_chain_itr->first.CompareTo("d") == 0)) continue; //only data
 			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
 			if(t != "" && !tag_chain_itr->first.Contains(t)) continue;
-			TChain * ch = (tag_chain_itr->second.find("selected"))->second.get();
+			TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 
 			//data
 			std::cout << "[STATUS] Adding branch " << branchName << " to " << tag_chain_itr->first << std::endl;
@@ -920,7 +922,8 @@ int main(int argc, char **argv)
 		} //end of sample loop
 	} //end of branches loop
 
-	//(tagChainMap["s"])["selected"]->GetEntries();
+	//(tagChainMap["s"])["treeProducerWMassEle"]->GetEntries();
+        std::cout << "crasca 3" << std::endl;
 	UpdateFriends(tagChainMap, regionsFileNameTag);
 
 	//create tag "s" if not present (due to multiple mc samples)
@@ -939,7 +942,7 @@ int main(int argc, char **argv)
 	///------------------------------ to obtain run ranges
 	if(vm.count("runDivide")) {
 		runDivide_class runDivider(cutter.GetCut(commonCut+"-eleID_"+selection, false,0), cutter.GetBranchNameNtuple(commonCut+"-eleID_"+selection));
-		runDivider.Divide((tagChainMap["d"])["selected"].get(), "data/runRanges/runRangeLimits.dat", nEvents_runDivide);
+		runDivider.Divide((tagChainMap["d"])["treeProducerWMassEle"].get(), "data/runRanges/runRangeLimits.dat", nEvents_runDivide);
 		runDivider.PrintRunRangeEvents();
 		// std::vector<TString> runRanges;
 		// if(runRangesFileName != "") runRanges = ReadRegionsFromFile(runRangesFileName);
@@ -953,8 +956,8 @@ int main(int argc, char **argv)
 
 
 //   Dump(tagChainMap, "s",0);
-//   Dump(tagChainMap, "s",(tagChainMap["s1"])["selected"]->GetEntries());
-//   Dump(tagChainMap, "s",(tagChainMap["s2"])["selected"]->GetEntries());
+//   Dump(tagChainMap, "s",(tagChainMap["s1"])["treeProducerWMassEle"]->GetEntries());
+//   Dump(tagChainMap, "s",(tagChainMap["s2"])["treeProducerWMassEle"]->GetEntries());
 //   exit(0);
 	if(vm.count("saveRootMacro")) {
 		for(tag_chain_map_t::const_iterator tag_chain_itr = tagChainMap.begin();
@@ -988,8 +991,8 @@ int main(int argc, char **argv)
 	TChain * data = NULL;
 	TChain * mc = NULL;
 	if(!vm.count("smearerFit")) {
-		data = (tagChainMap["d"])["selected"].get();
-		mc  = (tagChainMap["s"])["selected"].get();
+		data = (tagChainMap["d"])["treeProducerWMassEle"].get();
+		mc  = (tagChainMap["s"])["treeProducerWMassEle"].get();
 	}
 
 
@@ -1005,6 +1008,7 @@ int main(int argc, char **argv)
 		activeBranchList.insert(tmpList.begin(), tmpList.end());
 		// add also the friend branches!
 	}
+        activeBranchList.insert("LepGood_r9"); // for some regexp-reason, this is distorted
 
 	if(vm.count("zFit")) {
 
@@ -1229,7 +1233,7 @@ int main(int argc, char **argv)
 		filename += ".root";
 		TFile *tmpFile = new TFile(filename, "recreate");
 		tmpFile->cd();
-		RooSmearer smearer("smearer", (tagChainMap["d"])["selected"].get(), (tagChainMap["s"])["selected"].get(), NULL,
+		RooSmearer smearer("smearer", (tagChainMap["d"])["treeProducerWMassEle"].get(), (tagChainMap["s"])["treeProducerWMassEle"].get(), NULL,
 		                   categories,
 		                   args_vec, args, energyBranchName);
 		smearer._isDataSmeared = vm.count("isDataSmeared");

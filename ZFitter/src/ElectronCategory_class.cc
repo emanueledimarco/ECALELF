@@ -15,7 +15,7 @@ ElectronCategory_class::ElectronCategory_class(bool isRooFit_, bool roofitNameAs
 	_isRooFit(isRooFit_),
 	_roofitNameAsNtuple(roofitNameAsNtuple_),
 	invMassBranchName(""),
-	energyBranchName("energy_ECAL_ele"),
+	energyBranchName("LepGood_ecalEnergy"),
 	_corrEle(false)
 {
 
@@ -42,11 +42,11 @@ TCut ElectronCategory_class::GetCut(TString region, bool isMC, int nEle, bool co
 #ifdef DEBUG
 		std::cout << cut_string << std::endl;
 #endif
-		if(isMC && cut_string.Contains("runNumber")) {
+		if(isMC && cut_string.Contains("run")) {
 			cut_string.Insert(0, "(");
-			cut_string += "|| runNumber==1)";
+			cut_string += "|| run==1)";
 		}
-		if(isMC && cut_string.Contains("lumiBlock")) continue;
+		if(isMC && cut_string.Contains("lumi")) continue;
 		//      std::cout << "[DEBUG] Skipping runNumber cut for MC " << isMC << "\t" << string << std::endl;
 
 		if(isMC == false && (corrEle || _corrEle)) {
@@ -95,74 +95,74 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 
 	std::set<TString> cutSet;
 	// events %2 == 0 are dropped
-	TCut odd_cut = "eventNumber%2 !=0";
-	TCut even_cut = "eventNumber%2 ==0";
+	TCut odd_cut = "evt%2 !=0";
+	TCut even_cut = "evt%2 ==0";
 
 
 	//Need to implement this part for Pt
 	//
-	TCut EB_ele1_cut = "abs(etaEle_ele1) < 1.4442";
-	TCut EB_ele2_cut = "abs(etaEle_ele2) < 1.4442";
+	TCut EB_ele1_cut = "abs(LepGood_scEta_ele1) < 1.4442";
+	TCut EB_ele2_cut = "abs(LepGood_scEta_ele2) < 1.4442";
 	TCut EB_cut = EB_ele1_cut && EB_ele2_cut;
 
 
-	TCut EBp_ele1_cut = "etaEle_ele1 > 0 && etaEle_ele1 < 1.4442";
-	TCut EBp_ele2_cut = "etaEle_ele2 > 0 && etaEle_ele2 < 1.4442";
+	TCut EBp_ele1_cut = "LepGood_scEta_ele1 > 0 && LepGood_scEta_ele1 < 1.4442";
+	TCut EBp_ele2_cut = "LepGood_scEta_ele2 > 0 && LepGood_scEta_ele2 < 1.4442";
 	TCut EBp_cut = EBp_ele1_cut && EBp_ele2_cut;
 
-	TCut EBm_ele1_cut = "etaEle_ele1 < 0 && etaEle_ele1 > -1.4442";
-	TCut EBm_ele2_cut = "etaEle_ele2 < 0 && etaEle_ele2 > -1.4442";
+	TCut EBm_ele1_cut = "LepGood_scEta_ele1 < 0 && LepGood_scEta_ele1 > -1.4442";
+	TCut EBm_ele2_cut = "LepGood_scEta_ele2 < 0 && LepGood_scEta_ele2 > -1.4442";
 	TCut EBm_cut = EBm_ele1_cut && EBm_ele2_cut;
 
-	TCut EE_ele1_cut = "abs(etaEle_ele1) > 1.566 && abs(etaEle_ele1) < 2.5";
-	TCut EE_ele2_cut = "abs(etaEle_ele2) > 1.566 && abs(etaEle_ele2) < 2.5";
+	TCut EE_ele1_cut = "abs(LepGood_scEta_ele1) > 1.566 && abs(LepGood_scEta_ele1) < 2.5";
+	TCut EE_ele2_cut = "abs(LepGood_scEta_ele2) > 1.566 && abs(LepGood_scEta_ele2) < 2.5";
 	TCut EE_cut = EE_ele1_cut  &&  EE_ele2_cut;
 
 
-	TCut EEp_ele1_cut = "etaEle_ele1 > 1.566 && etaEle_ele1 < 2.5";
-	TCut EEp_ele2_cut = "etaEle_ele2 > 1.566 && etaEle_ele2 < 2.5";
+	TCut EEp_ele1_cut = "LepGood_scEta_ele1 > 1.566 && LepGood_scEta_ele1 < 2.5";
+	TCut EEp_ele2_cut = "LepGood_scEta_ele2 > 1.566 && LepGood_scEta_ele2 < 2.5";
 	TCut EEp_cut = EEp_ele1_cut && EEp_ele2_cut;
 
-	TCut EEm_ele1_cut = "etaEle_ele1 < -1.566 && etaEle_ele1 > -2.5";
-	TCut EEm_ele2_cut = "etaEle_ele2 < -1.566 && etaEle_ele2 > -2.5";
+	TCut EEm_ele1_cut = "LepGood_scEta_ele1 < -1.566 && LepGood_scEta_ele1 > -2.5";
+	TCut EEm_ele2_cut = "LepGood_scEta_ele2 < -1.566 && LepGood_scEta_ele2 > -2.5";
 	TCut EEm_cut = EEm_ele1_cut && EEm_ele2_cut;
 
-	TCut preshower_ele1_cut = "abs(etaEle_ele1) > 1.7";
-	TCut preshower_ele2_cut = "abs(etaEle_ele2) > 1.7";
+	TCut preshower_ele1_cut = "abs(LepGood_scEta_ele1) > 1.7";
+	TCut preshower_ele2_cut = "abs(LepGood_scEta_ele2) > 1.7";
 
 
 
-	TCut EBlowEta_ele1_cut = "abs(etaEle_ele1) < 1.";
-	TCut EBlowEta_ele2_cut = "abs(etaEle_ele2) < 1.";
+	TCut EBlowEta_ele1_cut = "abs(LepGood_scEta_ele1) < 1.";
+	TCut EBlowEta_ele2_cut = "abs(LepGood_scEta_ele2) < 1.";
 	TCut EBlowEta_cut = EBlowEta_ele1_cut && EBlowEta_ele2_cut;
 
-	TCut EBhighEta_ele1_cut = EB_ele1_cut && "abs(etaEle_ele1) >= 1.";
-	TCut EBhighEta_ele2_cut = EB_ele2_cut && "abs(etaEle_ele2) >= 1.";
+	TCut EBhighEta_ele1_cut = EB_ele1_cut && "abs(LepGood_scEta_ele1) >= 1.";
+	TCut EBhighEta_ele2_cut = EB_ele2_cut && "abs(LepGood_scEta_ele2) >= 1.";
 	TCut EBhighEta_cut = EBhighEta_ele1_cut && EBhighEta_ele2_cut;
 
-	TCut EElowEta_ele1_cut =	EE_ele1_cut && "abs(etaEle_ele1) < 2.";
-	TCut EElowEta_ele2_cut = EE_ele2_cut && "abs(etaEle_ele2) < 2.";
+	TCut EElowEta_ele1_cut =	EE_ele1_cut && "abs(LepGood_scEta_ele1) < 2.";
+	TCut EElowEta_ele2_cut = EE_ele2_cut && "abs(LepGood_scEta_ele2) < 2.";
 	TCut EElowEta_cut = EElowEta_ele1_cut && EElowEta_ele2_cut;
 
-	TCut EEhighEta_ele1_cut =  EE_ele1_cut && "abs(etaEle_ele1) >= 2.";
-	TCut EEhighEta_ele2_cut = EE_ele2_cut && "abs(etaEle_ele2) >= 2.";
+	TCut EEhighEta_ele1_cut =  EE_ele1_cut && "abs(LepGood_scEta_ele1) >= 2.";
+	TCut EEhighEta_ele2_cut = EE_ele2_cut && "abs(LepGood_scEta_ele2) >= 2.";
 	TCut EEhighEta_cut = EEhighEta_ele1_cut && EEhighEta_ele2_cut;
 
 
-	TCut gold_ele1_cut = "R9Ele_ele1 >= 0.94";
-	TCut gold_ele2_cut = "R9Ele_ele2 >= 0.94";
+	TCut gold_ele1_cut = "LepGood_r9_ele1 >= 0.94";
+	TCut gold_ele2_cut = "LepGood_r9_ele2 >= 0.94";
 	TCut gold_cut = gold_ele1_cut && gold_ele2_cut;
 
-	TCut bad_ele1_cut = "R9Ele_ele1 < 0.94";
-	TCut bad_ele2_cut = "R9Ele_ele2 < 0.94";
+	TCut bad_ele1_cut = "LepGood_r9_ele1 < 0.94";
+	TCut bad_ele2_cut = "LepGood_r9_ele2 < 0.94";
 	TCut bad_cut = bad_ele1_cut && bad_ele2_cut;
 
-	TCut highR9_ele1_cut = "R9Eleprime_ele1 >= 0.94";
-	TCut highR9_ele2_cut = "R9Eleprime_ele2 >= 0.94";
+	TCut highR9_ele1_cut = "LepGood_r9prime_ele1 >= 0.94";
+	TCut highR9_ele2_cut = "LepGood_r9prime_ele2 >= 0.94";
 	TCut highR9_cut = highR9_ele1_cut && highR9_ele2_cut;
 
-	TCut lowR9_ele1_cut = "R9Eleprime_ele1 < 0.94";
-	TCut lowR9_ele2_cut = "R9Eleprime_ele2 < 0.94";
+	TCut lowR9_ele1_cut = "LepGood_r9prime_ele1 < 0.94";
+	TCut lowR9_ele2_cut = "LepGood_r9prime_ele2 < 0.94";
 	TCut lowR9_cut = lowR9_ele1_cut && lowR9_ele2_cut;
 
 	// EB Reference Region
@@ -171,9 +171,9 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 	TCut EBRefReg_cut = EBRefReg_ele1_cut && EBRefReg_ele2_cut;
 
 	//EE reference region
-	TCut EERefReg_ele1_cut = "abs(etaEle_ele1) >= 1.7 && abs(etaEle_ele1) <= 2.3";
+	TCut EERefReg_ele1_cut = "abs(LepGood_scEta_ele1) >= 1.7 && abs(LepGood_scEta_ele1) <= 2.3";
 	EERefReg_ele1_cut += "abs(phiEle_ele1 - 1.5707963267949) >0.1 && abs(phiEle_ele1 + 1.5707963267949) >0.1";
-	TCut EERefReg_ele2_cut = "abs(etaEle_ele2) >= 1.7 && abs(etaEle_ele2) <= 2.3";
+	TCut EERefReg_ele2_cut = "abs(LepGood_scEta_ele2) >= 1.7 && abs(LepGood_scEta_ele2) <= 2.3";
 	EERefReg_ele2_cut += "abs(phiEle_ele2 - 1.5707963267949) >0.1 && abs(phiEle_ele2 + 1.5707963267949) >0.1";
 	TCut EERefReg_cut = EERefReg_ele1_cut && EERefReg_ele2_cut;
 
@@ -218,8 +218,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 	TCut noPFEle_cut = "recoFlagsEle_ele1 > 1 && recoFlagsEle_ele2 > 1";
 	TCut fiducial_cut = "eleID[0]%2==1 && eleID[1]%2==1";
 
-	TCut isEle_ele1_cut = "chargeEle_ele1 == 1 || chargeEle_ele1 == -1";
-	TCut isEle_ele2_cut = "chargeEle_ele2 == 1 || chargeEle_ele2 == -1";
+	TCut isEle_ele1_cut = "LepGood_pdgId_ele1 == 11 || LepGood_pdgId_ele1 == -11";
+	TCut isEle_ele2_cut = "LepGood_pdgId_ele2 == 11 || LepGood_pdgId_ele2 == -11";
 	TCut isEle_cut = isEle_ele1_cut && isEle_ele2_cut;
 
 	/*
@@ -376,10 +376,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 			TString string2 = Objstring2->GetString();
 
-			TCut cutEle1_1("abs(etaEle_ele1) >= " + string1);
-			TCut cutEle1_2("abs(etaEle_ele1) <  " + string2);
-			TCut cutEle2_1("abs(etaEle_ele2) >= " + string1);
-			TCut cutEle2_2("abs(etaEle_ele2) <  " + string2);
+			TCut cutEle1_1("abs(LepGood_scEta_ele1) >= " + string1);
+			TCut cutEle1_2("abs(LepGood_scEta_ele1) <  " + string2);
+			TCut cutEle2_1("abs(LepGood_scEta_ele2) >= " + string1);
+			TCut cutEle2_2("abs(LepGood_scEta_ele2) <  " + string2);
 
 			TCut absEta_ele1_cut = cutEle1_1 && cutEle1_2;
 			TCut absEta_ele2_cut = cutEle2_1 && cutEle2_2;
@@ -408,10 +408,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 			TString string2 = Objstring2->GetString();
 
-			TCut cutEle1_1("abs(etaEle_ele1) >= " + string1 + " && abs(etaEle_ele1) < 1.442");
-			TCut cutEle1_2("abs(etaEle_ele1) >=  1.566 && abs(etaEle_ele1) <" + string2);
-			TCut cutEle2_1("abs(etaEle_ele2) >= " + string1 + " && abs(etaEle_ele2) < 1.442");
-			TCut cutEle2_2("abs(etaEle_ele2) >=  1.566 && abs(etaEle_ele2) <" + string2);
+			TCut cutEle1_1("abs(LepGood_scEta_ele1) >= " + string1 + " && abs(LepGood_scEta_ele1) < 1.442");
+			TCut cutEle1_2("abs(LepGood_scEta_ele1) >=  1.566 && abs(LepGood_scEta_ele1) <" + string2);
+			TCut cutEle2_1("abs(LepGood_scEta_ele2) >= " + string1 + " && abs(LepGood_scEta_ele2) < 1.442");
+			TCut cutEle2_2("abs(LepGood_scEta_ele2) >=  1.566 && abs(LepGood_scEta_ele2) <" + string2);
 
 
 			TCut Inclusive_ele1_cut = cutEle1_1 || cutEle1_2 ; //-->note the or in the inclusive scenario
@@ -610,8 +610,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			continue;
 		}
 
-		//--------------- runNumber
-		if(string.Contains("runNumber")) {
+		//--------------- run number
+		if(string.Contains("run")) {
 			TObjArray *splitted = string.Tokenize("_");
 			if(splitted->GetEntries() < 3) {
 				std::cerr << "ERROR: incomplete runNumber region definition" << std::endl;
@@ -623,8 +623,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 			TString string2 = Objstring2->GetString();
 
-			TCut cut1("runNumber >= " + string1);
-			TCut cut2("runNumber <=  " + string2);
+			TCut cut1("run >= " + string1);
+			TCut cut2("run <=  " + string2);
 
 			cut_string += cut1 && cut2;
 			cutSet.insert(TString(cut1 && cut2));
@@ -634,8 +634,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			continue;
 		}
 
-		//--------------- lumiBlock
-		if(string.Contains("lumiBlock")) {
+		//--------------- lumi Block
+		if(string.Contains("lumi")) {
 			TObjArray *splitted = string.Tokenize("_");
 			if(splitted->GetEntries() < 3) {
 				std::cerr << "ERROR: incomplete lumiBlock region definition" << std::endl;
@@ -647,8 +647,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 			TString string2 = Objstring2->GetString();
 
-			TCut cut1("lumiBlock >= " + string1);
-			TCut cut2("lumiBlock <=  " + string2);
+			TCut cut1("lumi >= " + string1);
+			TCut cut2("lumi <=  " + string2);
 
 			cut_string += cut1 && cut2;
 			cutSet.insert(TString(cut1 && cut2));
@@ -723,8 +723,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 				TString string1 = Objstring1->GetString();
 
 
-				TCut cutEle1("" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) >= " + string1);
-				TCut cutEle2("" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) >= " + string1);
+				TCut cutEle1("" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) >= " + string1);
+				TCut cutEle2("" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) >= " + string1);
 
 				cut_string += cutEle1 && cutEle2;
 				cutSet.insert(TString(cutEle1 && cutEle2));
@@ -737,10 +737,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 				TString string1 = Objstring1->GetString();
 				TString string2 = Objstring2->GetString();
 
-				TCut cutEle1_1("" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) >= " + string1);
-				TCut cutEle1_2("" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) <  " + string2);
-				TCut cutEle2_1("" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) >= " + string1);
-				TCut cutEle2_2("" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) <  " + string2);
+				TCut cutEle1_1("" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) >= " + string1);
+				TCut cutEle1_2("" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) <  " + string2);
+				TCut cutEle2_1("" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) >= " + string1);
+				TCut cutEle2_2("" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) <  " + string2);
 
 				TCut ele1_cut = cutEle1_1 && cutEle1_2;
 				TCut ele2_cut = cutEle2_1 && cutEle2_2;
@@ -786,8 +786,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 				TString fraction = ((TObjString *) splitted_string1->At(1))->GetString();
 				string1 = invMassBranchName + "/" + fraction;
 			}
-			TCut cutEle1("" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) >= " + "( " + energyBranchName + "_ele1/cosh(etaSCEle_ele1) >" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) )*" + string1);
-			TCut cutEle2("" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) >= " + "( " + energyBranchName + "_ele2/cosh(etaSCEle_ele2) >" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) )*" + string1);
+			TCut cutEle1("" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) >= " + "( " + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) >" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) )*" + string1);
+			TCut cutEle2("" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) >= " + "( " + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) >" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) )*" + string1);
 
 			cut_string += cutEle1 && cutEle2;
 			cutSet.insert(TString(cutEle1 && cutEle2));
@@ -812,8 +812,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 				TString fraction = ((TObjString *) splitted_string1->At(1))->GetString();
 				string1 = invMassBranchName + "/" + fraction;
 			}
-			TCut cutEle1("" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) >= " + "( " + energyBranchName + "_ele1/cosh(etaSCEle_ele1) <" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) )*" + string1);
-			TCut cutEle2("" + energyBranchName + "_ele2/cosh(etaSCEle_ele2) >= " + "( " + energyBranchName + "_ele2/cosh(etaSCEle_ele2) <" + energyBranchName + "_ele1/cosh(etaSCEle_ele1) )*" + string1);
+			TCut cutEle1("" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) >= " + "( " + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) <" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) )*" + string1);
+			TCut cutEle2("" + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) >= " + "( " + energyBranchName + "_ele2/cosh(LepGood_scEta_ele2) <" + energyBranchName + "_ele1/cosh(LepGood_scEta_ele1) )*" + string1);
 
 			cut_string += cutEle1 && cutEle2;
 			cutSet.insert(TString(cutEle1 && cutEle2));
@@ -862,10 +862,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 			TString string2 = Objstring2->GetString();
 
-			TCut cutEle1_1("energySCEle_corr_ele1 >= " + string1);
-			TCut cutEle1_2("energySCEle_corr_ele1 <  " + string2);
-			TCut cutEle2_1("energySCEle_corr_ele2 >= " + string1);
-			TCut cutEle2_2("energySCEle_corr_ele2 <  " + string2);
+			TCut cutEle1_1("LepGood_pt_ele1*cosh(LepGood_scEta_ele1) >= " + string1);
+			TCut cutEle1_2("LepGood_pt_ele2*cosh(LepGood_scEta_ele2) <  " + string2);
+			TCut cutEle2_1("LepGood_pt_ele1*cosh(LepGood_scEta_ele1) >= " + string1);
+			TCut cutEle2_2("LepGood_pt_ele2*cosh(LepGood_scEta_ele2) <  " + string2);
 
 			TCut ele1_cut = cutEle1_1 && cutEle1_2;
 			TCut ele2_cut = cutEle2_1 && cutEle2_2;
@@ -1048,10 +1048,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 				TString string1 = Objstring1->GetString();
 				TString string2 = Objstring2->GetString();
 
-				TCut cutEle1_1("R9Ele_ele1 >= " + string1);
-				TCut cutEle1_2("R9Ele_ele1 <  " + string2);
-				TCut cutEle2_1("R9Ele_ele2 >= " + string1);
-				TCut cutEle2_2("R9Ele_ele2 <  " + string2);
+				TCut cutEle1_1("LepGood_r9_ele1 >= " + string1);
+				TCut cutEle1_2("LepGood_r9_ele1 <  " + string2);
+				TCut cutEle2_1("LepGood_r9_ele2 >= " + string1);
+				TCut cutEle2_2("LepGood_r9_ele2 <  " + string2);
 
 				TCut R9_ele1_cut = cutEle1_1 && cutEle1_2;
 				TCut R9_ele2_cut = cutEle2_1 && cutEle2_2;
@@ -1094,11 +1094,11 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			continue;
 		}
 
-		//--------------- nPV
-		if(string.Contains("nPV")) {
+		//--------------- nVert
+		if(string.Contains("nVert")) {
 			TObjArray *splitted = string.Tokenize("_");
 			if(splitted->GetEntries() < 3) {
-				std::cerr << "ERROR: incomplete nPV region definition" << std::endl;
+				std::cerr << "ERROR: incomplete nVert region definition" << std::endl;
 				continue;
 			}
 			TObjString *Objstring1 = (TObjString *) splitted->At(1);
@@ -1107,8 +1107,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 			TString string2 = Objstring2->GetString();
 
-			TCut cut1("nPV >= " + string1);
-			TCut cut2("nPV <  " + string2);
+			TCut cut1("nVert >= " + string1);
+			TCut cut2("nVert <  " + string2);
 			cut_string += cut1 && cut2;
 			cutSet.insert(TString(cut1));
 			cutSet.insert(TString(cut2));
@@ -1213,8 +1213,8 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			TString string1 = Objstring1->GetString();
 
 
-			TCut cutEle1("classificationEle_ele1 == " + string1);
-			TCut cutEle2("classificationEle_ele2 == " + string1);
+			TCut cutEle1("LepGood_classification_ele1 == " + string1);
+			TCut cutEle2("LepGood_classification_ele2 == " + string1);
 
 			if(string.Contains("SingleEle")) cut_string += cutEle1 || cutEle2;
 			else cut_string += cutEle1 && cutEle2;
@@ -1521,14 +1521,14 @@ std::set<TString> ElectronCategory_class::GetBranchNameNtuple(TString region)
 		branchNames.insert(string1);
 	}
 //   std::cout << cut << std::endl;
-//   if(cut.Contains("etaEle")) branchNames.insert("etaEle");
+//   if(cut.Contains("LepGood_scEta")) branchNames.insert("LepGood_scEta");
 //   if(cut.Contains("ieta")) branchNames.insert("seedXSCEle");
 //   if(cut.Contains("iphi")) branchNames.insert("seedYSCEle");
 //   if(cut.Contains("R9Ele")) branchNames.insert("R9Ele");
 //   if(cut.Contains("CL")) branchNames.insert("classificationEle");
 //   if(cut.Contains("runNumber")) branchNames.insert("runNumber");
 //   if(cut.Contains("recoFlagsEle")) branchNames.insert("recoFlagsEle");
-//   if(cut.Contains("etaSCEle")) branchNames.insert("etaSCEle");
+//   if(cut.Contains("LepGood_scEta")) branchNames.insert("LepGood_scEta");
 //   if(cut.Contains("energySCEle")) branchNames.insert("energySCEle");
 
 #ifdef DEBUG
