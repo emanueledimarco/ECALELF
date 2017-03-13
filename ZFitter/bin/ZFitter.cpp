@@ -185,6 +185,8 @@ void MergeSamples(tag_chain_map_t& tagChainMap, TString regionsFileNameTag, TStr
 
 	std::pair<TString, chain_map_t > pair_tmp_tag(tag, chain_map_t()); // make_pair not work with scram b
 	tagChainMap.insert(pair_tmp_tag);
+        
+        std::cout << "Merge, tag = " << tag << std::endl;
 
 	//loop over all the tags
 	for(tag_chain_map_t::const_iterator tag_chain_itr = tagChainMap.begin();
@@ -966,7 +968,8 @@ int main(int argc, char **argv)
 			for(chain_map_t::const_iterator chain_itr = tag_chain_itr->second.begin();
 			        chain_itr != tag_chain_itr->second.end();
 			        chain_itr++) {
-				chain_itr->second->SaveAs("tmp/" + tag_chain_itr->first + "_" + chain_itr->first + "_chain.root");
+                          std::cout << "PPPPP " << tag_chain_itr->first << "   " << chain_itr->first << std::endl;
+				chain_itr->second->SaveAs("tmp/" + chain_itr->first + "_" + tag_chain_itr->first + "_chain.root");
 				//chain_itr->second->SavePrimitive(std::cout); // not implemented
 			}
 		}
@@ -983,10 +986,6 @@ int main(int argc, char **argv)
 	) return 0;
 
 	eleID += selection.c_str();
-	eleID.ReplaceAll("-", "|");
-	//Note for expert users: whenever the eleID selection name (the one in CMSSW) has a "-" it must be replaced (before categorization) with "|"
-	//This is because ElectronCategory_class splits strings based on "-" and you don't want to split the eleID name!
-	eleID.ReplaceAll("_", "");
 
 	TChain * data = NULL;
 	TChain * mc = NULL;
@@ -1151,9 +1150,9 @@ int main(int argc, char **argv)
 			args.add(*scale_);
 
 			TString varName = *region_itr;
-			TPRegexp reg("Et_[0-9.]*_[0-9.]*");
+			TPRegexp reg("LepGood_pt_[0-9.]*_[0-9.]*");
 			reg.Substitute(varName, "");
-			TPRegexp reg2("energySC_[0-9.]*_[0-9.]*");
+			TPRegexp reg2("LepGood_ecalEnergy_[0-9.]*_[0-9.]*");
 			reg2.Substitute(varName, "");
 			varName.ReplaceAll("--", "-");
 			if(varName.First("-") == 0) varName.Remove(0, 1);
@@ -1233,6 +1232,20 @@ int main(int argc, char **argv)
 		filename += ".root";
 		TFile *tmpFile = new TFile(filename, "recreate");
 		tmpFile->cd();
+                std::cout << "size of the chain map = "<< tagChainMap.size() << std::endl;
+                for(tag_chain_map_t::const_iterator tag_chain_itr = tagChainMap.begin();
+                    tag_chain_itr != tagChainMap.end();
+                    tag_chain_itr++) {
+                  chain_map_t treetochain = tag_chain_itr->second;
+                  // loop over all the trees
+                  for(chain_map_t::const_iterator chain_itr = tag_chain_itr->second.begin();
+                      chain_itr != tag_chain_itr->second.end();
+                      chain_itr++) {
+
+                    std::cout << "tree name = " << chain_itr->first << std::endl;
+                    //std::cout << "hic sunt leones = " << treetochain.second->GetEntries() << std::endl;
+                  }
+                }
 		RooSmearer smearer("smearer", (tagChainMap["d"])["treeProducerWMassEle"].get(), (tagChainMap["s"])["treeProducerWMassEle"].get(), NULL,
 		                   categories,
 		                   args_vec, args, energyBranchName);
