@@ -102,6 +102,7 @@ void RooSmearer::SetCache(Long64_t nEvents, bool cacheToy, bool externToy)
 			data_events_cache = importer.GetCache(_signal_chain, false, false, nEvents, true, externToy); //importer.GetCacheToy(nEvents, false);
 		} else {
 			std::cout << "[STATUS] --- Setting cache for data" << std::endl;
+                        std::cout << _data_chain->GetEntries() << std::endl;
 			data_events_cache = importer.GetCache(_data_chain, false, false, nEvents);
 		}
 	}

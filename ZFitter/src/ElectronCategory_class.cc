@@ -104,6 +104,10 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
         TCut LepEle_ele2_cut = "abs(LepGood_pdgId_ele2)==11";
         TCut LepEle_cut = LepEle_ele1_cut && LepEle_ele2_cut;
 
+        TCut EleIDLoose_ele1_cut = "LepGood_tightId_ele1>=1";
+        TCut EleIDLoose_ele2_cut = "LepGood_tightId_ele2>=1";
+        TCut EleIDLoose_cut = EleIDLoose_ele1_cut && EleIDLoose_ele2_cut;
+
 	//Need to implement this part for Pt
 	//
 	TCut EB_ele1_cut = "abs(LepGood_scEta_ele1) < 1.4442";
@@ -314,6 +318,13 @@ std::set<TString> ElectronCategory_class::GetCutSet(TString region)
 			cutSet.insert(TString((EB_ele1_cut && EE_ele2_cut) || (EB_ele2_cut && EE_ele1_cut)));
 			continue;
 		}
+
+                //-------------- ele ID
+                if(string.Contains("LooseEleID")) {
+                  cut_string += EleIDLoose_cut;
+                  cutSet.insert(TString(EleIDLoose_cut));
+                  continue;
+                }
 
 		//--------------with R9Transformation by Matteo
 		if(string.CompareTo("lowR9") == 0) {

@@ -121,9 +121,9 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 	ULong64_t eventNumber;
 
 	//------------------------------
-	chain->SetBranchAddress("eventNumber", &eventNumber);
-	chain->SetBranchAddress("etaEle", etaEle);
-	chain->SetBranchAddress("phiEle", phiEle);
+	chain->SetBranchAddress("evt", &eventNumber);
+	chain->SetBranchAddress("LepGood_eta", etaEle);
+	chain->SetBranchAddress("LepGood_phi", phiEle);
 
 	chain->SetBranchAddress(_energyBranchName, energyEle);
 	if(chain->GetBranch("scaleEle") != NULL) {
@@ -448,10 +448,10 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 
 	_chain->SetBranchStatus("*", 0);
 
-	_chain->SetBranchStatus("etaEle", 1);
-	_chain->SetBranchStatus("phiEle", 1);
+	_chain->SetBranchStatus("LepGood_eta", 1);
+	_chain->SetBranchStatus("LepGood_phi", 1);
 	_chain->SetBranchStatus(_energyBranchName, 1);
-	if(isToy) _chain->SetBranchStatus("eventNumber", 1);
+	if(isToy) _chain->SetBranchStatus("evt", 1);
 	//  std::cout << _chain->GetBranchStatus("seedXSCEle") <<  std::endl;
 	//  std::cout << _chain->GetBranchStatus("etaEle") <<  std::endl;
 
@@ -485,9 +485,10 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 		std::set<TString> branchNames = cutter.GetBranchNameNtuple(_commonCut + "-" + eleID_ + "-" + *region_ele1_itr);
 		for(std::set<TString>::const_iterator itr = branchNames.begin();
 		        itr != branchNames.end(); itr++) {
-			_chain->SetBranchStatus(*itr, "1");
+                  if(*itr!="LepGood_r") _chain->SetBranchStatus(*itr, "1");
 		}
 	}
+        _chain->SetBranchStatus("LepGood_r9", 1);
 
 	TString evListName = "evList_";
 	evListName += _chain->GetTitle();
@@ -495,7 +496,9 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 	TEntryList *oldList = _chain->GetEntryList();
 	if(oldList == NULL) {
 		std::cout << "[STATUS] In SmearingImporter.cc, Setting entry list: " << evListName << std::endl;
-		_chain->Draw(">>" + evListName, cutter.GetCut(_commonCut + "-" + eleID_, isMC), "entrylist");
+                std::cout << "Il taglio per la eventlist e': " << cutter.GetCut(_commonCut + "-" + eleID_, isMC) << std::endl;
+		int npass = _chain->Draw(">>" + evListName, cutter.GetCut(_commonCut + "-" + eleID_, isMC), "entrylist");
+                std::cout << "NPASS = " << npass << std::endl;
 		TEntryList *elist_all = (TEntryList*)gDirectory->Get(evListName);
 		TECALChain *chain_ecal = (TECALChain*)_chain;
 		chain_ecal->TECALChain::SetEntryList(elist_all);

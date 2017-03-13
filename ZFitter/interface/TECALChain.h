@@ -44,15 +44,17 @@ public:
 		Int_t listfound = 0;
 		TString treename, filename;
 
+                std::cout << "NE = " << ne << "  elist size = " << elist->GetN() << std::endl;
+
 		TEntryList *templist = 0;
 		for (Int_t ie = 0; ie < ne; ie++) {
 			auto chainElement = (TChainElement*)fFiles->UncheckedAt(ie);
 			treename = chainElement->GetName();
 			filename = chainElement->GetTitle();
-			templist = elist->GetEntryList(filename + "/" + treename, filename);
-			/* std::cout << "[yacine] treename :: " << treename << std::endl; */
-			/* std::cout << "[yacine] filename :: " << filename << std::endl; */
-			/* std::cout << "[yacine] templist :: " << templist << std::endl; */
+			templist = elist->GetEntryList(treename, filename);
+			std::cout << "[yacine] treename :: " << treename << std::endl;
+			std::cout << "[yacine] filename :: " << filename << std::endl;
+			std::cout << "[yacine] templist :: " << templist << std::endl;
 			if (templist) {
 				listfound++;
 				templist->SetTreeNumber(ie);
