@@ -1,4 +1,4 @@
-eos_path=/data1/emanuele/wmass/electron_smearer_trees
+eos_path=data/smearerCat
 puName(){
     ## pileup reweight name
     # $1 = configFile
@@ -63,7 +63,7 @@ mkSmearerCatSignal(){
  	    --saveRootMacro  --addBranch=smearerCat_s || exit 1 
 	for tag in `grep "^s" ${configFile} | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
 	do
-	    mv tmp/smearerCat_${basenameConfig}_${tag}-`basename $configFile .dat`.root ${eos_path}/data/smearerCat/ || exit 1
+	    mv tmp/smearerCat_${basenameConfig}_${tag}-`basename $configFile .dat`.root ${eos_path} || exit 1
 	done
     fi
 
@@ -93,8 +93,9 @@ mkSmearerCatData(){
     if [ ! -e "$2/smearerCat_`basename $1 .dat`_d1-`basename $configFile .dat`.root" ] || [ "$5" = "-f" ] || [ "$4" = "-f" ];then
 	echo "[STATUS] Creating smearerCat for data: `basename $configFile .dat` `basename $1 .dat`"
 
-	./bin/ZFitter.exe -f $3 --regionsFile=$1  \
+	./bin/ZFitter.exe -f ${configFile} --regionsFile=$1  \
 	    --saveRootMacro  --addBranch=smearerCat_d $4 || exit 1 
+
 	mv tmp/smearerCat_`basename $1 .dat`_d*-`basename $configFile .dat`.root $2/ || exit 1
     fi
 

@@ -15,17 +15,17 @@ source script/bash_functions_calibration.sh
 # - gain study (step9)
 
 index= #useless?
-eos_path=/eos/project/c/cms-ecal-calibration
+eos_path=data/smearerCat
 tmp_path=`pwd`
 baseDir=${tmp_path}/test
 eosDir=${eos_path}/test
 updateOnly="--updateOnly --fit_type_value=1" # --profileOnly --initFile=init.txt"
-commonCut="LepGood_pt_25"
+commonCut="EtSingleEle_25"
 #commonCut=Et_20-noPF #Standard common Cuts for Z calibration
 #commonCut=Et_30-noPF #Et_30 for 0 T calibration
 #default selection is loose25nsRun22016Moriond #you can change this via steps_maker.sh
-selection=cutsID-loose #cutBasedElectronID-Spring15-25ns-V1-standalone-loose
-invMass_var=LepGood_ecalEnergy
+selection="LooseEleID" #cutBasedElectronID-Spring15-25ns-V1-standalone-loose
+invMass_var="invMass_ECAL_ele"
 #invMass_var=invMass_SC_pho_regrCorr #you can change this via script (steps_maker.sh)
 Et_smear=
 ###########################################################
@@ -294,10 +294,10 @@ if [ -n "${STEP2}" ];then
     else
 	newSelection=${selection}
     fi
-	if [ ! -e "${outDirMC}/fitres" ];then mkdir ${outDirMC}/fitres -p; fi
-	if [ ! -e "${outDirMC}/img" ];then mkdir ${outDirMC}/img -p; fi
-	if [ ! -e "${outDirData}/step2${extension}/fitres" ];then mkdir ${outDirData}/step2${extension}/fitres -p; fi
-	if [ ! -e "${outDirData}/step2${extension}/img" ];then mkdir ${outDirData}/step2${extension}/img -p; fi
+    if [ ! -e "${outDirMC}/fitres" ];then mkdir ${outDirMC}/fitres -p; fi
+    if [ ! -e "${outDirMC}/img" ];then mkdir ${outDirMC}/img -p; fi
+    if [ ! -e "${outDirData}/step2${extension}/fitres" ];then mkdir ${outDirData}/step2${extension}/fitres -p; fi
+    if [ ! -e "${outDirData}/step2${extension}/img" ];then mkdir ${outDirData}/step2${extension}/img -p; fi
 
     regionFileEB=${regionFileStep2EB}
     regionFileEE=${regionFileStep2EE}
@@ -320,12 +320,10 @@ if [ -n "${STEP2}" ];then
 	    echo "${tag} scaleEle_HggRunEta ${outDirData}/step1/scaleEle_HggRunEta_${tag}-`basename $configFile .dat`.root" >> ${outDirData}/step2${extension}/`basename ${configFile}`
 	done
 
-        echo "stocazzo1"
 	mkSmearerCatSignal $regionFileEB $outDirData/step2${extension}/`basename $configFile`
-        echo "stocazzo2"
 	mkSmearerCatSignal $regionFileEE $outDirData/step2${extension}/`basename $configFile`
-	mkSmearerCatData   $regionFileEB ${outDirData}/step2 $outDirData/step2${extension}/`basename $configFile` --corrEleType=HggRunEta
-	mkSmearerCatData   $regionFileEE ${outDirData}/step2 $outDirData/step2${extension}/`basename $configFile` --corrEleType=HggRunEta
+	mkSmearerCatData   $regionFileEB ${outDirData}/step2 $outDirData/step2${extension}/`basename $configFile`
+	mkSmearerCatData   $regionFileEE ${outDirData}/step2 $outDirData/step2${extension}/`basename $configFile`
 	
     fi
 
@@ -335,9 +333,13 @@ if [ -n "${STEP2}" ];then
 	    echo "You are sending a test job to see if you need to pass an initFile"	
 	fi
 
-	./bin/ZFitter.exe -f $outDirData/step2/`basename $configFile` --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection}  --smearerFit --autoNsmear --autoBin --corrEleType=HggRunEta --outDirFitResData=${outDirData}/step2${extension}/fitres_test
+        echo ${outDirData}/step2${extension}/`basename ${configFile}`
+	touch ${outDirData}/step2${extension}/`basename ${configFile}` #It seems better to touch first, if you write on eos
+	cat $configFile > ${outDirData}/step2${extension}/`basename ${configFile}`
+
+	./bin/ZFitter.exe -f $outDirData/step2/`basename $configFile` --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
 	
-	./bin/ZFitter.exe -f $outDirData/step2/`basename $configFile` --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin  --corrEleType=HggRunEta --outDirFitResData=${outDirData}/step2${extension}/fitres_test
+	./bin/ZFitter.exe -f $outDirData/step2/`basename $configFile` --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
 
 	echo "Now you should decide if you want to copy and edit"
 	echo "cp ${outDirData}/step2${extension}/fitres_test/params-${basenameEB}-${commonCut}.txt ${outDirData}/step2${extension}/fitres/init-params-step2_1-${commonCut}.txt"
