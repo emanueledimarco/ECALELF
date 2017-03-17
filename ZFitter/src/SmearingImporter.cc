@@ -118,7 +118,7 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 	bool hasSmearerCat = false;
 
 	// for toy repartition
-	ULong64_t eventNumber;
+	Int_t eventNumber;
 
 	//------------------------------
 	chain->SetBranchAddress("evt", &eventNumber);
