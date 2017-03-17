@@ -496,9 +496,7 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 	TEntryList *oldList = _chain->GetEntryList();
 	if(oldList == NULL) {
 		std::cout << "[STATUS] In SmearingImporter.cc, Setting entry list: " << evListName << std::endl;
-                std::cout << "Il taglio per la eventlist e': " << cutter.GetCut(_commonCut + "-" + eleID_, isMC) << std::endl;
 		int npass = _chain->Draw(">>" + evListName, cutter.GetCut(_commonCut + "-" + eleID_, isMC), "entrylist");
-                std::cout << "NPASS = " << npass << std::endl;
 		TEntryList *elist_all = (TEntryList*)gDirectory->Get(evListName);
 		TECALChain *chain_ecal = (TECALChain*)_chain;
 		chain_ecal->TECALChain::SetEntryList(elist_all);
