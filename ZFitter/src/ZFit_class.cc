@@ -1268,6 +1268,7 @@ TString	ZFit_class::GetEnergyVarName(TString invMass_name)
 	else if(invMass_var == "invMass_SC_regrCorr_pho") energyBranchName = "energySCEle_regrCorr_pho";
 	else if(invMass_var == "invMass_ECAL_ele") energyBranchName = "energy_ECAL_ele";
 	else if(invMass_var == "invMass_ECAL_pho") energyBranchName = "energy_ECAL_pho";
+        else if(invMass_var == "mZ1") energyBranchName = "energyFromPt";
 	return energyBranchName;
 }
 

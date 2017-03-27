@@ -13,7 +13,7 @@
 #include <TTreeFormula.h>
 #include <TObjArray.h>
 #include <TChainElement.h>
-//#define DEBUG
+#define DEBUG
 
 
 #define SELECTOR
@@ -102,6 +102,7 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 	// for the angle calculation
 	Float_t         etaEle[2];
 	Float_t         phiEle[2];
+        Float_t         ptEle[2];
 
 	// for the weight calculation
 	Float_t         weight = 1.;
@@ -125,7 +126,11 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 	chain->SetBranchAddress("LepGood_eta", etaEle);
 	chain->SetBranchAddress("LepGood_phi", phiEle);
 
-	chain->SetBranchAddress(_energyBranchName, energyEle);
+        if(_energyBranchName.Contains("energyFromPt"))
+          chain->SetBranchAddress("LepGood_pt", ptEle);
+        else 
+          chain->SetBranchAddress(_energyBranchName, energyEle);
+
 	if(chain->GetBranch("scaleEle") != NULL) {
 		if(isToy == false || (externToy == true && isToy == true && isMC == false)) {
 			std::cout << "[STATUS] Adding electron energy correction branch from friend" << std::endl;
@@ -322,6 +327,9 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 		}
 
 		//------------------------------
+                if(_energyBranchName.Contains("energyFromPt")) {
+                  for(int ie=0; ie<2; ++ie) energyEle[ie] = ptEle[ie] * cosh(etaEle[ie]);
+                }
 		if(_swap) {
 			event.energy_ele2 = energyEle[0] * corrEle_[0] * smearEle_[0];
 			event.energy_ele1 = energyEle[1] * corrEle_[1] * smearEle_[1];
@@ -356,20 +364,6 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 		if(!isMC && _pdfWeightIndex > 0 && pdfWeights != NULL) {
 			if(((unsigned int)_pdfWeightIndex) > pdfWeights->size()) continue;
 			event.weight *= ((*pdfWeights)[0] <= 0 || (*pdfWeights)[0] != (*pdfWeights)[0] || (*pdfWeights)[_pdfWeightIndex] != (*pdfWeights)[_pdfWeightIndex]) ? 0 : (*pdfWeights)[_pdfWeightIndex] / (*pdfWeights)[0];
-
-
-#ifdef DEBUG
-			if(jentry < 10 || event.weight != event.weight || event.weight > 1.3) {
-				std::cout << "jentry = " << jentry
-				          << "\tevent.weight = " << event.weight
-				          //<< "\t" << (*pdfWeights)[_pdfWeightIndex]/(*pdfWeights)[0] << "\t" << (*pdfWeights)[_pdfWeightIndex] << "\t" << (*pdfWeights)[0]
-				          << "\t" << r9weight[0] << " " << r9weight[1]
-				          << "\t" << ptweight[0] << " " << ptweight[1]
-				          << "\t" << WEAKweight << "\t" << FSRweight << "\t" << LTweight
-				          << std::endl;
-			}
-#endif
-
 		} else {
 			if(!isMC && _pdfWeightIndex > 0) {
 				std::cerr << "[ERROR] requested pdfWeights but not set by getentry" << std::endl;
@@ -396,6 +390,10 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 			          << "\t" << zptweight[0]
 			          << "\t" << WEAKweight << "\t" << FSRweight
 			          << std::endl;
+                        std::cout << "\tEne = " << event.energy_ele1 << " " << event.energy_ele2
+                                  << " ; Eta = " << etaEle[0] << " " << etaEle[1]
+                                  << " invMass = " << event.invMass << std::endl;
+
 		}
 		//#endif
 
@@ -450,7 +448,10 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 
 	_chain->SetBranchStatus("LepGood_eta", 1);
 	_chain->SetBranchStatus("LepGood_phi", 1);
-	_chain->SetBranchStatus(_energyBranchName, 1);
+        if(_energyBranchName.Contains("energyFromPt"))
+          _chain->SetBranchStatus("LepGood_pt", 1);
+        else
+          _chain->SetBranchStatus(_energyBranchName, 1);
 	if(isToy) _chain->SetBranchStatus("evt", 1);
 	//  std::cout << _chain->GetBranchStatus("seedXSCEle") <<  std::endl;
 	//  std::cout << _chain->GetBranchStatus("etaEle") <<  std::endl;
@@ -485,7 +486,7 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 		std::set<TString> branchNames = cutter.GetBranchNameNtuple(_commonCut + "-" + eleID_ + "-" + *region_ele1_itr);
 		for(std::set<TString>::const_iterator itr = branchNames.begin();
 		        itr != branchNames.end(); itr++) {
-                  if(*itr!="LepGood_r") _chain->SetBranchStatus(*itr, "1");
+                  if(*itr!="LepGood_r" && *itr!="energyFromPt") _chain->SetBranchStatus(*itr, "1");
 		}
 	}
         _chain->SetBranchStatus("LepGood_r9", 1);

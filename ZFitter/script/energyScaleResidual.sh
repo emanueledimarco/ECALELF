@@ -25,7 +25,7 @@ commonCut="EtSingleEle_25"
 #commonCut=Et_30-noPF #Et_30 for 0 T calibration
 #default selection is loose25nsRun22016Moriond #you can change this via steps_maker.sh
 selection="LooseEleID" #cutBasedElectronID-Spring15-25ns-V1-standalone-loose
-invMass_var="invMass_ECAL_ele"
+invMass_var="mZ1"
 #invMass_var=invMass_SC_pho_regrCorr #you can change this via script (steps_maker.sh)
 Et_smear=
 ###########################################################
@@ -322,8 +322,8 @@ if [ -n "${STEP2}" ];then
 
 	mkSmearerCatSignal $regionFileEB $outDirData/step2${extension}/`basename $configFile`
 	mkSmearerCatSignal $regionFileEE $outDirData/step2${extension}/`basename $configFile`
-	mkSmearerCatData   $regionFileEB ${outDirData}/step2 $outDirData/step2${extension}/`basename $configFile`
-	mkSmearerCatData   $regionFileEE ${outDirData}/step2 $outDirData/step2${extension}/`basename $configFile`
+	mkSmearerCatData   $regionFileEB $outDirData/step2${extension}/`basename $configFile`
+	mkSmearerCatData   $regionFileEE $outDirData/step2${extension}/`basename $configFile`
 	
     fi
 
@@ -333,14 +333,9 @@ if [ -n "${STEP2}" ];then
 	    echo "You are sending a test job to see if you need to pass an initFile"	
 	fi
 
-        echo ${outDirData}/step2${extension}/`basename ${configFile}`
-	touch ${outDirData}/step2${extension}/`basename ${configFile}` #It seems better to touch first, if you write on eos
-	cat $configFile > ${outDirData}/step2${extension}/`basename ${configFile}`
-
-        echo "--> cfgfile = " $outDirData/step2/`basename $configFile`
-	./bin/ZFitter.exe -f $outDirData/step2/`basename $configFile` --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
+	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
 	
-	./bin/ZFitter.exe -f $outDirData/step2/`basename $configFile` --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
+	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
 
 	echo "Now you should decide if you want to copy and edit"
 	echo "cp ${outDirData}/step2${extension}/fitres_test/params-${basenameEB}-${commonCut}.txt ${outDirData}/step2${extension}/fitres/init-params-step2_1-${commonCut}.txt"

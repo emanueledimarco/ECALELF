@@ -59,11 +59,11 @@ mkSmearerCatSignal(){
 	fi
 	echo "[STATUS] Creating smearerCat for signal: `basename $configFile .dat` `basename $1 .dat`"
 	echo "./bin/ZFitter.exe -f ${configFile} --regionsFile=$1 --saveRootMacro  --addBranch=smearerCat_s"
- 	./bin/ZFitter.exe -f ${configFile} --regionsFile=$1  \
- 	    --saveRootMacro  --addBranch=smearerCat_s || exit 1 
+ 	./bin/ZFitter.exe -f ${configFile} --regionsFile=$1 --saveRootMacro --addBranch=smearerCat_s || exit 1 
 	for tag in `grep "^s" ${configFile} | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
 	do
-	    mv tmp/smearerCat_${basenameConfig}_${tag}-`basename $configFile .dat`.root ${eos_path} || exit 1
+            echo "tmp/smearerCat_${basenameConfig}_*.root ${eos_path}"
+	    mv tmp/smearerCat_${basenameConfig}_*.root ${eos_path} || exit 1
 	done
     fi
 
@@ -85,30 +85,29 @@ mkSmearerCatSignal(){
 
 mkSmearerCatData(){
     #$1: regionFile
-    #$2: outDirData/step...
-    #$3: configFile
-    #$4: corrEleType
+    #$2: configFile
+    #$3: corrEleType
     ##echo "Inside mkSmearerCatData"
     basenameConfig=`basename $1 .dat`
-    if [ ! -e "$2/smearerCat_`basename $1 .dat`_d1-`basename $configFile .dat`.root" ] || [ "$5" = "-f" ] || [ "$4" = "-f" ];then
+    if [ ! -e "${eos_path}/data/smearerCat/smearerCat_`basename $1 .dat`_d1-`basename $configFile .dat`.root" ] || [ "$5" = "-f" ] || [ "$4" = "-f" ];then
 	echo "[STATUS] Creating smearerCat for data: `basename $configFile .dat` `basename $1 .dat`"
 
 	./bin/ZFitter.exe -f ${configFile} --regionsFile=$1  \
-	    --saveRootMacro  --addBranch=smearerCat_d $4 || exit 1 
+	    --saveRootMacro  --addBranch=smearerCat_d $3 || exit 1 
 
-	mv tmp/smearerCat_`basename $1 .dat`_d*-`basename $configFile .dat`.root $2/ || exit 1
+	mv tmp/smearerCat_`basename $1 .dat`_d*-`basename $configFile .dat`.root ${eos_path} || exit 1
     fi
 
     #TO-DO -> be sure that the writing is unique to avoid stupid crashes
     #Once cat root files are created, just write them in the validation file and be sure they are unique
-    for tag in `grep "^d" $3 | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
+    for tag in `grep "^d" $2 | grep treeProducerWMassEle | awk -F" " ' { print $1 } '`
     do
-	is_already_written=$(cat $3 |grep smearerCat_${basenameConfig}_${tag}|wc -l)
+	is_already_written=$(cat $2 |grep smearerCat_${basenameConfig}_${tag}|wc -l)
 	if [ "${is_already_written}" = "1" ]; then
 	    echo "[CHECK NEEDED] The categorization root file was already written for tag ${tag}. Be sure of what you are doing"
 	elif [ "${is_already_written}" = "0" ]; then  
 	    echo "[INFO] You are writing the categorization file in the validation file for tag ${tag}"
-	    echo -e "${tag}\tsmearerCat_${basenameConfig}\t$2/smearerCat_${basenameConfig}_${tag}-$(basename $configFile .dat).root" >> $3
+	    echo -e "${tag}\tsmearerCat_${basenameConfig}\t$1/smearerCat_${basenameConfig}_${tag}-$(basename $configFile .dat).root" >> $3
 	else
 	    echo "[ERROR] you have written multiple times the same categorization file! There must be a mistake"
 	fi

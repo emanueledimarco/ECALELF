@@ -33,7 +33,6 @@ configuration files.
 #include "../interface/ZFit_class.hh"
 #include "../interface/puWeights_class.hh"
 #include "../interface/r9Weights_class.hh"
-#include "../interface/ZPtWeights_class.hh"
 
 #include "../interface/runDivide_class.hh"
 #include "../interface/EnergyScaleCorrection_class.hh"
@@ -243,7 +242,6 @@ int main(int argc, char **argv)
 	std::string runRangesFileName;
 	std::vector<TString> dataPUFileNameVec, mcPUFileNameVec;
 	std::string r9WeightFile;
-	std::string ZPtWeightFile;
 	std::string initFileName;
 	//  bool savePUweightTree;
 	std::string imgFormat, outDirFitResMC = "test/MC/fitres", outDirFitResData = "test/dato/fitres", outDirImgMC = "test/MC/img", outDirImgData = "test/dato/img", outDirTable = "test/dato/table", selection;
@@ -307,8 +305,6 @@ int main(int argc, char **argv)
 	("r9WeightFile", po::value<string>(&r9WeightFile), "File with r9 photon-electron weights")
 	("useR9weight", "use r9 photon-electron weights")
 	("saveR9TreeWeight", "")
-	("ZPtWeightFile", po::value<string>(&ZPtWeightFile), "File with ZPt weights")
-	("useZPtweight", "use ZPt weights")
 	("useFSRweight", "activate the FSR weight in MC")
 	("useWEAKweight", "activate the WEAK interference weight in MC")
 	("saveRootMacro", "")
@@ -429,12 +425,9 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if(vm.count("useZPtweight") && !vm.count("pdfSystWeightIndex")) {
-		std::cerr << "[ERROR] Asked for ZPt weights but no pdfSystWeightIndex indicated" << std::endl;
-		exit(1);
-	}
-
 	TString energyBranchName = energyBranchNameFromInvMassName(invMass_var).c_str();
+
+        std::cout << "-----------------------> energy branch name = " << energyBranchName << std::endl;
 
 	if(!vm.count("chainFileList") && !vm.count("runToy")) {
 		std::cerr << "[ERROR] Missing mandatory option \"chainFile\"" << std::endl;
@@ -618,153 +611,6 @@ int main(int argc, char **argv)
 		} else categories.push_back((*region_itr) + "-" + commonCut.c_str());
 	}
 
-
-
-	///------------------------------ to obtain r9weights
-	if(vm.count("saveR9TreeWeight") && !vm.count("r9WeightFile")) {
-		std::cerr << "[ERROR] No r9WeightFile specified" << std::endl;
-		return 1;
-	}
-	if(vm.count("r9WeightFile")) {
-		std::cout << "------------------------------------------------------------" << std::endl;
-		std::cout << "[STATUS] Getting r9Weights from file: " << r9WeightFile << std::endl;
-		r9Weights_class r9Weights;
-		r9Weights.ReadFromFile(r9WeightFile);
-
-		TString treeName = "r9Weight";
-
-		// mc // save it in a file and reload it as a chain to be safe against the reference directory for the tree
-		for(tag_chain_map_t::iterator tag_chain_itr = tagChainMap.begin();
-		        tag_chain_itr != tagChainMap.end();
-		        tag_chain_itr++) {
-			if(tag_chain_itr->first.CompareTo("d") == 0 || tag_chain_itr->first.CompareTo("s") == 0) continue;
-			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = tag_chain_itr->second.find("treeProducerWMassEle")->second.get();
-
-			TString filename = "tmp/r9Weight_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
-			std::cout << "[STATUS] Saving r9Weights tree to root file:" << filename << std::endl;
-
-			TFile f(filename, "recreate");
-			if(!f.IsOpen() || f.IsZombie()) {
-				std::cerr << "[ERROR] File for r9Weights: " << filename << " not opened" << std::endl;
-				exit(1);
-			}
-			TTree *corrTree = r9Weights.GetTreeWeight(ch);
-			f.cd();
-			corrTree->Write();
-			std::cout << "[INFO] Data      entries: " << ch->GetEntries() << std::endl;
-			std::cout << "       r9Weights entries: " << corrTree->GetEntries() << std::endl;
-			delete corrTree;
-
-			f.Write();
-			f.Close();
-			chain_map_t::iterator chain_itr = (tag_chain_itr->second.insert(make_pair(treeName, pTChain_t(new TChain(treeName))))).first;
-			chain_itr->second->SetTitle(tag_chain_itr->first);
-			chain_itr->second->Add(filename);
-
-		} // end of data samples loop
-	} // end of r9Weight
-
-
-	if(vm.count("saveR9TreeWeight")) return 0;
-
-	///------------------------------ to obtain ZPt weights
-	if(vm.count("ZPtWeightFile")) {
-		std::cout << "------------------------------------------------------------" << std::endl;
-		std::cout << "[STATUS] Getting ZPtWeights from file: " << ZPtWeightFile << std::endl;
-		UpdateFriends(tagChainMap, regionsFileNameTag);
-		ZPtWeights_class ZPtWeights;
-		ZPtWeights.ReadFromFile(ZPtWeightFile);
-
-		TString treeName = "ZPtWeight";
-
-		// mc // save it in a file and reload it as a chain to be safe against the reference directory for the tree
-		for(tag_chain_map_t::iterator tag_chain_itr = tagChainMap.begin();
-		        tag_chain_itr != tagChainMap.end();
-		        tag_chain_itr++) {
-			if(tag_chain_itr->first.Contains("d")) continue; /// \todo ZPtWeight only on MC! because from PdfWeights, to make it more general
-			if(tag_chain_itr->first.CompareTo("d") == 0 || tag_chain_itr->first.CompareTo("s") == 0) continue;
-			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
-
-			TString filename = "tmp/ZPtWeight_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
-			std::cout << "[STATUS] Saving r9Weights tree to root file:" << filename << std::endl;
-
-			TFile f(filename, "recreate");
-			if(!f.IsOpen() || f.IsZombie()) {
-				std::cerr << "[ERROR] File for ZPtWeights: " << filename << " not opened" << std::endl;
-				exit(1);
-			}
-			TTree *corrTree = ZPtWeights.GetTreeWeight(ch, "ZPt_" + energyBranchName);
-			f.cd();
-			corrTree->Write();
-			std::cout << "[INFO] Data      entries: " << ch->GetEntries() << std::endl;
-			std::cout << "       ZPtWeights entries: " << corrTree->GetEntries() << std::endl;
-			delete corrTree;
-
-			f.Write();
-			f.Close();
-			chain_map_t::iterator chain_itr = (tag_chain_itr->second.insert(make_pair(treeName, pTChain_t(new TChain(treeName))))).first;
-			chain_itr->second->SetTitle(tag_chain_itr->first);
-			chain_itr->second->Add(filename);
-
-		} // end of data samples loop
-	} // end of r9Weight
-
-
-	//==============================
-	//  if(vm.count("dataPU")==0 && (tagChainMap["s"]).count("pileupHist")==0 && (tagChainMap["s"]).count("pileup")==0){
-	if(vm.count("noPU") == 0 && !vm.count("runToy")) {
-		if(dataPUFileNameVec.empty() && (tagChainMap.count("s") != 0) && (tagChainMap["s"]).count("pileup") == 0) {
-			std::cerr << "[ERROR] Nor pileup mc tree configured in chain list file either dataPU histograms are not provided" << std::endl;
-			return 1;
-		} else if( !vm.count("runToy") && (vm.count("dataPU") != 0 || (!dataPUFileNameVec.empty() && ((tagChainMap.count("s") == 0) || (tagChainMap["s"]).count("pileup") == 0)))) {
-			std::cout << "[STATUS] Creating pileup weighting tree and saving it" << std::endl;
-			for(unsigned int i = 0; i < mcPUFileNameVec.size(); i++) {
-				TString mcPUFileName_ = mcPUFileNameVec[i];
-				TString dataPUFileName_ = dataPUFileNameVec[i];
-				TString runMin_ = "";
-				if(!mcPUFileName_.Contains("nPU")) {
-// 	if(mcPUFileName_.Index(".runMin_")!=-1){
-					runMin_ = mcPUFileName_;
-					runMin_.Remove(0, runMin_.Last('/') + 1);
-					runMin_.Remove(runMin_.First('-'));
-// 	  runMin_.Remove(runMin_.First('.'));
-// 	  runMin_.ReplaceAll("runMin_","");
-				}
-				int runMin = runMin_.Sizeof() > 1 ? runMin_.Atoi() : 1;
-				std::cout << "********* runMin = " << runMin << "\t" << runMin_ << std::endl;
-				puWeights.ReadFromFiles(mcPUFileName_.Data(), dataPUFileName_.Data(), runMin);
-			}
-
-			// for each mc sample create a tree with the per-event-weight
-			// but exclude the chain "s" since it's supposed to be created mergin alle the s-type samples
-			for(tag_chain_map_t::iterator tag_chain_itr = tagChainMap.begin();
-			        tag_chain_itr != tagChainMap.end();
-			        tag_chain_itr++) {
-				if(tag_chain_itr->first.CompareTo("s") == 0 || !tag_chain_itr->first.Contains("s")) continue;
-				TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
-				if((tag_chain_itr->second.count("pileup"))) continue;
-				TString treeName = "pileup";
-				TString filename = "tmp/mcPUtree" + tag_chain_itr->first + ".root";
-				TFile f(filename, "recreate");
-				if(f.IsOpen()) {
-					f.cd();
-
-					TTree *puTree = puWeights.GetTreeWeight(ch, true, puBranchName.c_str());
-					puTree->SetName(treeName);
-					puTree->Write();
-					delete puTree;
-					f.Write();
-					f.Close();
-					chain_map_t::iterator chain_itr = (tag_chain_itr->second.insert(make_pair(treeName, pTChain_t(new TChain(treeName))))).first;
-					chain_itr->second->SetTitle(tag_chain_itr->first);
-					chain_itr->second->Add(filename);
-				}
-			}
-		}
-	}
-
 	//read corrections directly from file
 	if (vm.count("corrEleType") && corrEleFile != "") {
 		std::cout << "------------------------------------------------------------" << std::endl;
@@ -866,7 +712,7 @@ int main(int argc, char **argv)
 	for( std::vector<string>::const_iterator branch_itr = branchList.begin();
 	        branch_itr != branchList.end();
 	        branch_itr++) {
-          std::cout << "crasca 2" << std::endl;
+          std::cout << "crasca 2 sul branch " << *branch_itr <<  std::endl;
 		UpdateFriends(tagChainMap, regionsFileNameTag);
 
 		TString treeName = *branch_itr;
@@ -906,6 +752,7 @@ int main(int argc, char **argv)
 			}
 			f.cd();
 
+                        std::cout << "%%%%%%%%%% newbrancher del case: adds branch with name " << energyBranchName <<  std::endl;
 			TTree *newTree = newBrancher.AddBranch(ch, treeName, branchName, true, tag_chain_itr->first.Contains("s"), energyBranchName);
 			if(newTree == NULL) {
 				std::cerr << "[ERROR] New tree for branch " << treeName << " is NULL" << std::endl;
@@ -1260,7 +1107,6 @@ int main(int argc, char **argv)
 		smearer.SetSmearingEt(vm.count("smearingEt"));
 		smearer.SetR9Weight(vm.count("useR9weight"));
 		smearer.SetPdfSystWeight(pdfSystWeightIndex);
-		smearer.SetZPtWeight(vm.count("useZPtweight"));
 		smearer.SetFsrWeight(vm.count("useFSRweight"));
 		smearer.SetWeakWeight(vm.count("useWEAKweight"));
 
