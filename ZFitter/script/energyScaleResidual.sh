@@ -333,9 +333,9 @@ if [ -n "${STEP2}" ];then
 	    echo "You are sending a test job to see if you need to pass an initFile"	
 	fi
 
-	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
+	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --onlyScale --outDirFitResData=${outDirData}/step2${extension}/fitres_test
 	
-	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --outDirFitResData=${outDirData}/step2${extension}/fitres_test
+	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --onlyScale --outDirFitResData=${outDirData}/step2${extension}/fitres_test
 
 	echo "Now you should decide if you want to copy and edit"
 	echo "cp ${outDirData}/step2${extension}/fitres_test/params-${basenameEB}-${commonCut}.txt ${outDirData}/step2${extension}/fitres/init-params-step2_1-${commonCut}.txt"
@@ -366,12 +366,12 @@ if [ -n "${STEP2}" ];then
 	bsub -q cmscaf1nd \
 	    -o ${outDirData}/step2/%I/fitres/`basename ${outFile} .dat`-${basenameEB}.log \
 	    -J "${basenameEB} step2[1-50]" \
-	    "cd $PWD; eval \`scramv1 runtime -sh\`; uname -a;  echo \$CMSSW_VERSION; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/fitres/ -p; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/img -p; ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --outDirFitResMC=${outDirMC}/fitres --outDirImgMC=${outDirMC}/img --outDirImgData=${outDirData}/step2/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step2/\$LSB_JOBINDEX/fitres  --smearerFit --autoNsmear --autoBin ${initFile_1} || exit 1; touch ${outDirData}/step2/\$LSB_JOBINDEX/${basenameEB}-done"
+	    "cd $PWD; eval \`scramv1 runtime -sh\`; uname -a;  echo \$CMSSW_VERSION; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/fitres/ -p; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/img -p; ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --outDirFitResMC=${outDirMC}/fitres --outDirImgMC=${outDirMC}/img --outDirImgData=${outDirData}/step2/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step2/\$LSB_JOBINDEX/fitres  --smearerFit --onlyScale --autoNsmear --autoBin ${initFile_1} || exit 1; touch ${outDirData}/step2/\$LSB_JOBINDEX/${basenameEB}-done"
 
 	bsub -q cmscaf1nd \
 	    -o ${outDirData}/step2/%I/fitres/`basename ${outFile} .dat`-${basenameEE}.log \
 	    -J "${basenameEE} step2[1-50]" \
-	    "cd $PWD; eval \`scramv1 runtime -sh\`; uname -a;  echo \$CMSSW_VERSION; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/fitres/ -p; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/img -p; ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --outDirFitResMC=${outDirMC}/fitres --outDirImgMC=${outDirMC}/img --outDirImgData=${outDirData}/step2/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step2/\$LSB_JOBINDEX/fitres  --smearerFit --autoNsmear --autoBin ${initFile_2} || exit 1; touch ${outDirData}/step2/\$LSB_JOBINDEX/${basenameEE}-done"
+	    "cd $PWD; eval \`scramv1 runtime -sh\`; uname -a;  echo \$CMSSW_VERSION; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/fitres/ -p; mkdir ${outDirData}/step2/\$LSB_JOBINDEX/img -p; ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --outDirFitResMC=${outDirMC}/fitres --outDirImgMC=${outDirMC}/img --outDirImgData=${outDirData}/step2/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step2/\$LSB_JOBINDEX/fitres  --smearerFit --onlyScale --autoNsmear --autoBin ${initFile_2} || exit 1; touch ${outDirData}/step2/\$LSB_JOBINDEX/${basenameEE}-done"
 
     fi #Submit_jobs
 
@@ -399,8 +399,8 @@ if [ -n "${STEP2}" ];then
 
     if [[ $scenario = Plot_after_fit ]] || [[ $scenario = "" ]]; then
 	echo "[STATUS] Plotting Data/MC using as initFile the final results (just to have the proper data/MC plots)"
-        ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --selection=${newSelection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step2${extension}/img/ --outDirFitResData=${outDirData}/step2${extension}/fitres --constTermFix  --smearerFit  --smearingEt --autoNsmear --autoBin --initFile=${outDirTable}/${outFile} --plotOnly  || exit 1
-        ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --selection=${selection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step2${extension}/img/ --outDirFitResData=${outDirData}/step2${extension}/fitres  --smearerFit --autoNsmear --autoBin --initFile=${outDirTable}/${outFile} --plotOnly  || exit 1
+        ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --selection=${newSelection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step2${extension}/img/ --outDirFitResData=${outDirData}/step2${extension}/fitres --constTermFix  --smearerFit  --smearingEt --autoNsmear --onlyScale --autoBin --initFile=${outDirTable}/${outFile} --plotOnly  || exit 1
+        ./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --selection=${selection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step2${extension}/img/ --outDirFitResData=${outDirData}/step2${extension}/fitres  --smearerFit --autoNsmear --onlyScale --autoBin --initFile=${outDirTable}/${outFile} --plotOnly  || exit 1
     fi #Fit_and_plot
 
     #### Setting file with scale corrections of step1 x step2

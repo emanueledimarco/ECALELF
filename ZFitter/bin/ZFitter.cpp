@@ -185,8 +185,6 @@ void MergeSamples(tag_chain_map_t& tagChainMap, TString regionsFileNameTag, TStr
 	std::pair<TString, chain_map_t > pair_tmp_tag(tag, chain_map_t()); // make_pair not work with scram b
 	tagChainMap.insert(pair_tmp_tag);
         
-        std::cout << "Merge, tag = " << tag << std::endl;
-
 	//loop over all the tags
 	for(tag_chain_map_t::const_iterator tag_chain_itr = tagChainMap.begin();
 	        tag_chain_itr != tagChainMap.end();
@@ -205,11 +203,9 @@ void MergeSamples(tag_chain_map_t& tagChainMap, TString regionsFileNameTag, TStr
 				(tagChainMap[tag])[chainName]->SetTitle(tag);
 			}
 			(tagChainMap[tag])[chainName]->Add(chain_itr->second.get());
-			std::cout << tag << "\t" << tag_chain_itr->first << "\t" << chainName <<  "\t" << chain_itr->second.get() << "\t" << chain_itr->second->GetTitle() << std::endl;
 
 		}
 	}
-        std::cout << "crasca 1 " << std::endl;
 	UpdateFriends(tagChainMap, regionsFileNameTag);
 	return;
 }
@@ -712,7 +708,6 @@ int main(int argc, char **argv)
 	for( std::vector<string>::const_iterator branch_itr = branchList.begin();
 	        branch_itr != branchList.end();
 	        branch_itr++) {
-          std::cout << "crasca 2 sul branch " << *branch_itr <<  std::endl;
 		UpdateFriends(tagChainMap, regionsFileNameTag);
 
 		TString treeName = *branch_itr;
@@ -726,7 +721,6 @@ int main(int argc, char **argv)
 			t = "d";
 		}
 		TString branchName = treeName;
-		std::cout << "#### --> " << treeName << "\t" << t << "\t" << *branch_itr << std::endl;
 		if(branchName == "smearerCat") treeName += "_" + regionsFileNameTag;
 #ifdef invMassSigma
 		if(treeName.Contains("invMassSigma")) {
@@ -752,7 +746,6 @@ int main(int argc, char **argv)
 			}
 			f.cd();
 
-                        std::cout << "%%%%%%%%%% newbrancher del case: adds branch with name " << energyBranchName <<  std::endl;
 			TTree *newTree = newBrancher.AddBranch(ch, treeName, branchName, true, tag_chain_itr->first.Contains("s"), energyBranchName);
 			if(newTree == NULL) {
 				std::cerr << "[ERROR] New tree for branch " << treeName << " is NULL" << std::endl;
@@ -772,7 +765,6 @@ int main(int argc, char **argv)
 	} //end of branches loop
 
 	//(tagChainMap["s"])["treeProducerWMassEle"]->GetEntries();
-        std::cout << "crasca 3" << std::endl;
 	UpdateFriends(tagChainMap, regionsFileNameTag);
 
 	//create tag "s" if not present (due to multiple mc samples)
@@ -1079,7 +1071,6 @@ int main(int argc, char **argv)
 		filename += ".root";
 		TFile *tmpFile = new TFile(filename, "recreate");
 		tmpFile->cd();
-                std::cout << "size of the chain map = "<< tagChainMap.size() << std::endl;
                 for(tag_chain_map_t::const_iterator tag_chain_itr = tagChainMap.begin();
                     tag_chain_itr != tagChainMap.end();
                     tag_chain_itr++) {
@@ -1088,9 +1079,6 @@ int main(int argc, char **argv)
                   for(chain_map_t::const_iterator chain_itr = tag_chain_itr->second.begin();
                       chain_itr != tag_chain_itr->second.end();
                       chain_itr++) {
-
-                    std::cout << "tree name = " << chain_itr->first << std::endl;
-                    //std::cout << "hic sunt leones = " << treetochain.second->GetEntries() << std::endl;
                   }
                 }
 		RooSmearer smearer("smearer", (tagChainMap["d"])["treeProducerWMassEle"].get(), (tagChainMap["s"])["treeProducerWMassEle"].get(), NULL,
@@ -1341,7 +1329,6 @@ int main(int argc, char **argv)
 				}
 
 				//if(!name.Contains("scale")) continue;
-				std::cout << "Doing " << name << "\t" << var->getVal() << std::endl;
 				smearer.SetDataSet(name, name);
 				//	      if(vm.count("runToy")){
 				//		MinProfile(var, smearer, -1, 0., min, false);
@@ -1354,11 +1341,9 @@ int main(int argc, char **argv)
 				profil->Draw("AP*");
 				fOutProfile.cd();
 				profil->Write();
-				std::cout << "Saved profile for " << name << std::endl;
 				smearer.dataset->Write();
 				delete profil;
 			}
-			std::cout << "Cloning args" << std::endl;
 			//	  RooArgSet *mu = (RooArgSet *)args.snapshot();
 			//std::cout << "creating roomultivargaussian" << std::endl;
 			//RooMultiVarGaussian g("multi","",args, *mu, *(smearer.GetMarkovChainAsDataSet()->covarianceMatrix()));

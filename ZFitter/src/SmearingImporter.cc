@@ -115,6 +115,9 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 	Float_t         LTweight = -1;
 	std::vector<double> *pdfWeights = NULL;
 
+        // pre-computed mZ1
+        Float_t         mZ1 = 0.;
+
 	Int_t           smearerCat[2];
 	bool hasSmearerCat = false;
 
@@ -126,8 +129,10 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 	chain->SetBranchAddress("LepGood_eta", etaEle);
 	chain->SetBranchAddress("LepGood_phi", phiEle);
 
-        if(_energyBranchName.Contains("energyFromPt"))
+        if(_energyBranchName.Contains("energyFromPt")) {
           chain->SetBranchAddress("LepGood_pt", ptEle);
+          chain->SetBranchAddress("mZ1", &mZ1);
+        }
         else 
           chain->SetBranchAddress(_energyBranchName, energyEle);
 
@@ -271,6 +276,7 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 		// reject events:
 		if(weight > 3) continue;
 
+                if(jentry<10) std::cout << "SmearingImporter, Processing ev " << jentry << std::endl;
 		if (hasSmearerCat == false && chain->GetTreeNumber() != treenumber) {
 			treenumber = chain->GetTreeNumber();
 			for(std::vector< std::pair<TTreeFormula*, TTreeFormula*> >::const_iterator catSelector_itr = catSelectors.begin();
@@ -296,7 +302,10 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 					if(sel2 == NULL || sel2->EvalInstance() == false) continue;
 					else _swap = true;
 				}
-
+                                
+                                //std::cout << "calc evIndex" << std::endl;
+                                //sel1->Print() ;
+                                //sel2->Print() ; 
 				evIndex = catSelector_itr - catSelectors.begin();
 			}
 		} else {
@@ -307,20 +316,20 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 		if(evIndex < 0) continue; // event in no category
 
 		ZeeEvent event;
-		//       if(jentry<30){
-		// 	//chain->Show(chain->GetEntryNumber(jentry));
-		// 	std::cout << "[INFO] corrEle[0] = " << corrEle_[0] << std::endl;
-		// 	std::cout << "[INFO] corrEle[1] = " << corrEle_[1] << std::endl;
-		// 	std::cout << "[INFO] smearEle[0] = " << smearEle_[0] << std::endl;
-		// 	std::cout << "[INFO] smearEle[1] = " << smearEle_[1] << std::endl;
-		// 	std::cout << "[INFO] Category = " << evIndex << std::endl;
-		//       }
 
 		float t1 = TMath::Exp(-etaEle[0]);
 		float t2 = TMath::Exp(-etaEle[1]);
 		float t1q = t1 * t1;
 		float t2q = t2 * t2;
 
+                // safety, otherwise something strange may happen in chains
+                if(chain->GetBranch("smearEle") == NULL) {
+                  smearEle_[0] = smearEle_[1] = 1.;
+                }
+                if(chain->GetBranch("scaleEle") == NULL) {
+                  corrEle_[0] = corrEle_[1] = 1.;
+                }
+                                    
 		if(isMC && hasSmearEle) {
 			smearEle_[0] = gen.Gaus(1, smearEle_[0]);
 			smearEle_[1] = gen.Gaus(1, smearEle_[1]);
@@ -337,6 +346,7 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 			event.energy_ele1 = energyEle[0] * corrEle_[0] * smearEle_[0];
 			event.energy_ele2 = energyEle[1] * corrEle_[1] * smearEle_[1];
 		}
+
 		//event.angle_eta_ele1_ele2=  (1-((1-t1q)*(1-t2q)+4*t1*t2*cos(phiEle[0]-phiEle[1]))/((1+t1q)*(1+t2q)));
 		event.invMass = sqrt(2 * event.energy_ele1 * event.energy_ele2 *
 		                     (1 - ((1 - t1q) * (1 - t2q) + 4 * t1 * t2 * cos(phiEle[0] - phiEle[1])) / ((1 + t1q) * (1 + t2q)))
@@ -355,14 +365,9 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 
 		event.weight = 1.;
 		if(_usePUweight) event.weight *= weight;
-		if(LTweight >= 0) event.weight *= LTweight;
-		if(_useR9weight) event.weight *= r9weight[0] * r9weight[1];
-		if(_usePtweight) event.weight *= ptweight[0] * ptweight[1];
-		if(_useFSRweight) event.weight *= FSRweight;
-		if(_useWEAKweight) event.weight *= WEAKweight;
 		if(_useZPtweight && isMC && _pdfWeightIndex > 0) event.weight *= zptweight[_pdfWeightIndex];
 		if(!isMC && _pdfWeightIndex > 0 && pdfWeights != NULL) {
-			if(((unsigned int)_pdfWeightIndex) > pdfWeights->size()) continue;
+                  if(((unsigned int)_pdfWeightIndex) > pdfWeights->size()) continue;
 			event.weight *= ((*pdfWeights)[0] <= 0 || (*pdfWeights)[0] != (*pdfWeights)[0] || (*pdfWeights)[_pdfWeightIndex] != (*pdfWeights)[_pdfWeightIndex]) ? 0 : (*pdfWeights)[_pdfWeightIndex] / (*pdfWeights)[0];
 		} else {
 			if(!isMC && _pdfWeightIndex > 0) {
@@ -372,29 +377,20 @@ void SmearingImporter::Import(TTree *chain, regions_cache_t& cache, TString oddS
 				else exit(1);
 			}
 		}
-		//As simple as that
-		if(isMC) {
-			if(mcGenWeight > 0) {
-				event.weight *= 1;
-			} else {
-				event.weight *= -1;
-			}
-		}
 		//#ifdef DEBUG
-		if(jentry < 10 || event.weight != event.weight || event.weight > 2) {
-			std::cout << "jentry = " << jentry
-			          << "\tevent.weight = " << event.weight
-			          << "\t" << weight << "\t" << mcGenWeight
-			          << "\t" << r9weight[0] << " " << r9weight[1]
-			          << "\t" << ptweight[0] << " " << ptweight[1]
-			          << "\t" << zptweight[0]
-			          << "\t" << WEAKweight << "\t" << FSRweight
-			          << std::endl;
-                        std::cout << "\tEne = " << event.energy_ele1 << " " << event.energy_ele2
-                                  << " ; Eta = " << etaEle[0] << " " << etaEle[1]
-                                  << " invMass = " << event.invMass << std::endl;
+                if(jentry < 10 || event.weight > 2) {
+                std::cout << "jentry = " << jentry
+                          << "\tevent.weight = " << event.weight
+                          << "\tpt1,2 = " << ptEle[0] << " " << ptEle[1]
+                          << "\tEne1,2 = " << event.energy_ele1 << " " << event.energy_ele2
+                          << " ; Eta = " << etaEle[0] << " " << etaEle[1]
+                          << " ; Phi = " << phiEle[0] << " " << phiEle[1]
+                          << " invMass = " << event.invMass << "  " << mZ1
+                          << " evIndex = " << evIndex 
+                          << std::endl;
 
-		}
+
+                }
 		//#endif
 
 		//if(event.weight==0){//ok, fixed
@@ -453,8 +449,6 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
         else
           _chain->SetBranchStatus(_energyBranchName, 1);
 	if(isToy) _chain->SetBranchStatus("evt", 1);
-	//  std::cout << _chain->GetBranchStatus("seedXSCEle") <<  std::endl;
-	//  std::cout << _chain->GetBranchStatus("etaEle") <<  std::endl;
 
 	if(_chain->GetBranch("scaleEle") != NULL) {
 		std::cout << "[STATUS] Activating branch scaleEle" << std::endl;
@@ -469,7 +463,6 @@ SmearingImporter::regions_cache_t SmearingImporter::GetCache(TChain *_chain, boo
 	}
 
 
-	if(_chain->GetBranch("r9Weight") != NULL)  _chain->SetBranchStatus("r9Weight", 1);
 	if(_chain->GetBranch("puWeight") != NULL)  _chain->SetBranchStatus("puWeight", 1);
 	if(_chain->GetBranch("ptWeight") != NULL)  _chain->SetBranchStatus("ptWeight", 1);
 	if(_chain->GetBranch("mcGenWeight") != NULL)  _chain->SetBranchStatus("mcGenWeight", 1);

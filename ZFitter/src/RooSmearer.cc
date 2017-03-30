@@ -104,7 +104,6 @@ void RooSmearer::SetCache(Long64_t nEvents, bool cacheToy, bool externToy)
 			std::cout << "[STATUS] --- Setting cache for data" << std::endl;
                         std::cout << _data_chain->GetEntries() << std::endl;
 			data_events_cache = importer.GetCache(_data_chain, false, false, nEvents);
-                        std::cout << "%%%%%% crascone " << std::endl;
 		}
 	}
 	if(!mc_events_cache.empty()) {
@@ -380,7 +379,6 @@ void RooSmearer::SetHisto(const zee_events_t& cache, TH1F * hist) const
 	        event_itr != cache.end();
 	        event_itr++) {
 		hist->Fill( event_itr->invMass,
-		            //sqrt(2 * event_itr->energy_ele1 * event_itr->energy_ele2 * event_itr->angle_eta_ele1_ele2),
 		            event_itr->weight);
 	}
 #ifdef DEBUG

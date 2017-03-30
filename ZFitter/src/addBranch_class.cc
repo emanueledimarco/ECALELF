@@ -561,14 +561,12 @@ TTree* addBranch_class::AddBranch_smearerCat(TChain* originalChain, TString tree
 		        region_ele2_itr != _regionList.end();
 		        region_ele2_itr++) {
 
-                  std::cout << "region1 = " << *region_ele1_itr << "  region2 = " << *region_ele2_itr << std::endl;
 			if(region_ele2_itr == region_ele1_itr) {
 				TString region = *region_ele1_itr;
 				region.ReplaceAll(_commonCut, ""); //remove the common Cut!
 				TTreeFormula *selector = new TTreeFormula("selector-" + (region), cutter.GetCut(region + oddString, isMC), originalChain);
 				catSelectors.push_back(std::pair<TTreeFormula*, TTreeFormula*>(selector, NULL));
-				//selector->Print();
-				//std::cout << "THE CUT: " << cutter.GetCut(region + oddString, isMC) << std::endl;
+                                // std::cout << "THE CUT: " << cutter.GetCut(region + oddString, isMC) << std::endl;
 				//exit(0);
 			} else {
 				TString region1 = *region_ele1_itr;
@@ -584,8 +582,6 @@ TTree* addBranch_class::AddBranch_smearerCat(TChain* originalChain, TString tree
 				        cutter.GetCut(region2 + oddString, isMC, 1),
 				        originalChain);
 				catSelectors.push_back(std::pair<TTreeFormula*, TTreeFormula*>(selector1, selector2));
-				//selector1->Print();
-				//	selector2->Print();
 				//exit(0);
 			}
 
