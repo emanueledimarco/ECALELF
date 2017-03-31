@@ -19,6 +19,7 @@ eos_path=data/smearerCat
 tmp_path=`pwd`
 baseDir=${tmp_path}/test
 eosDir=${eos_path}/test
+printDir=www
 updateOnly="--updateOnly --fit_type_value=1" # --profileOnly --initFile=init.txt"
 commonCut="EtSingleEle_25"
 #commonCut=Et_20-noPF #Standard common Cuts for Z calibration
@@ -432,32 +433,35 @@ if [ -n "${STEP2}" ];then
     fi
     if [[ $scenario = root_corr_step1_step2 ]] || [[ $scenario = "" ]] || [[ $scenario = Fit_Likelihood ]]; then
 	#save root files with step1*step2 (scale corrections)
-	./bin/ZFitter.exe -f ${configFile} --regionsFile ${regionFile} --saveRootMacro --corrEleType EtaR9 --corrEleFile ${outDirTable}/${outFileStep2/_scales.dat/}|| exit 1
+	./bin/ZFitter.exe -f ${configFile} --regionsFile ${regionFile} --saveRootMacro --onlyScale --corrEleType EtaR9 --corrEleFile ${outDirTable}/${outFileStep2/_scales.dat/}|| exit 1
 	#./bin/ZFitter.exe -f ${configFile} --regionsFile ${regionFile} --saveRootMacro --smearEleType stochastic --smearEleFile ${outDirTable}/smearing_corrections.dat || exit 1
 	mv tmp/scaleEle_EtaR9_[s,d][1-9]-`basename $configFile .dat`.root ${outDirData}/step2/    
     fi
 
 #################copying the dat file over the eos web space#######################
     if [[ $scenario = finalize_step2 ]] || [[ $scenario = "" ]] || [[ $scenario = Fit_Likelihood ]]; then
-	if [ ! -d "${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2" ];then 
-	    echo "~gfasanel/scratch1/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2 is being created"
-	    www_mkdir ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2/ -p
-	    www_mkdir ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2/DataMC/ -p
+	if [ ! -d $printDir ];then 
+            mkdir -p ${printDir}/DataMC
+            cp /afs/cern.ch/user/g/gpetrucc/php/index.php ${printDir}
 	fi
-	mv ${eos_path}/test/dato/${file}/${selection}/${invMass_var}/step2/img/outProfile-scaleStep2smearing_*.png ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2/
-	cp ${outDirTable}/${outFileStep2} ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2/ #do not mv this file: otherwise "checkStepDep step2" will fail!
+	if [ ! -d $printDir/DataMC ];then 
+            mkdir -p ${printDir}/DataMC
+            cp /afs/cern.ch/user/g/gpetrucc/php/index.php ${printDir}/DataMC
+        fi
+	mv test/dato/${file}/${selection}/${invMass_var}/step2/img/outProfile-scaleStep2smearing_*.png ${printDir}
+	cp ${outDirTable}/${outFileStep2} ${printDir} #do not mv this file: otherwise "checkStepDep step2" will fail!
 	./script/latex_table_writer.sh ${outDirTable}/${outFile} -${commonCut}
 	echo table_`basename ${outFile} .dat`"_scale_tex.dat"
-	cp tmp/table_`basename ${outFile} .dat`_scale_tex.dat ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2/
-	cp tmp/table_`basename ${outFile} .dat`_smear_tex.dat ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2/
+	cp tmp/table_`basename ${outFile} .dat`_scale_tex.dat ${printDir}
+	cp tmp/table_`basename ${outFile} .dat`_smear_tex.dat ${printDir}
 
         ###Data_MC_plots at the end of step2 (here the MC is shifted (not the data as in the analyses) to see the original position of the data peak)
 	file2EB=`basename ${regionFileEB} .dat`
 	file2EE=`basename ${regionFileEE} .dat`
 #
-	./script/plot_histos_validation.sh ${eos_path}/test/dato/${file}/${selection}/${invMass_var}/step2${extension}/fitres/histos-${file2EB}-${commonCut}.root
-	./script/plot_histos_validation.sh ${eos_path}/test/dato/${file}/${selection}/${invMass_var}/step2${extension}/fitres/histos-${file2EE}-${commonCut}.root
-	cp ${eos_path}/test/dato/${file}/${selection}/${invMass_var}/step2${extension}/./img/histos-* ${eos_path}/www/RUN2_ECAL_Calibration/${file}/${invMass_var}/step2${extension}/DataMC/
+	./script/plot_histos_validation.sh test/dato/${file}/${selection}/${invMass_var}/step2${extension}/fitres/histos-${file2EB}-${commonCut}.root
+	./script/plot_histos_validation.sh test/dato/${file}/${selection}/${invMass_var}/step2${extension}/fitres/histos-${file2EE}-${commonCut}.root
+	cp test/dato/${file}/${selection}/${invMass_var}/step2${extension}/img/histos-* ${printDir}/DataMC/
     fi
 #Here step2 is closed	
 fi

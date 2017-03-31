@@ -200,7 +200,7 @@ void Plot(TCanvas *c, TH1F *data, TH1F *mc, TH1F *mcSmeared=NULL, TLegend *legen
   //legend->Clear();
   //if(legend==NULL) legend = new TLegend(0.7,0.8,2.2,0.99); //This does NOT work properly
 
-  TLegend* better_legend= new TLegend(0.6,0.7,0.82,0.85); //legend is already defined
+  TLegend* better_legend= new TLegend(0.2,0.7,0.32,0.85); //legend is already defined
   better_legend->SetBorderSize(0);
   better_legend->SetFillColor(0);
   better_legend->SetTextSize(0.05);
@@ -289,10 +289,12 @@ void Plot(TCanvas *c, TH1F *data, TH1F *mc, TH1F *mcSmeared=NULL, TLegend *legen
 }
 
 
-void PlotMeanHist(TString filename, TString energy="13 TeV", TString lumi="36.4", int rebin=4, TString myRegion=""){
+void PlotMeanHist(TString filename, TString energy="8 TeV", TString lumi="19.7", int rebin=4, TString myRegion=""){
   //rebin=2 --> per il closure test in Et
   //rebin=4 --> binwidth=0.5 GeV
   
+  gStyle->SetOptStat(0);
+
   TH2F eventFraction("eventFraction", "", 10, 0, 9, 10, 0, 9);
   int index_max=0;
   double  region_array[20][20];
@@ -364,7 +366,7 @@ void PlotMeanHist(TString filename, TString energy="13 TeV", TString lumi="36.4"
 
   /*------------------------------ Plotting */
   TCanvas *c = new TCanvas("c","c");
-  TLegend *legend = new TLegend(0.6,0.6,0.65,0.88);
+  TLegend *legend = new TLegend(0.1,0.6,0.15,0.88);
   legend->SetFillStyle(3001);
   legend->SetFillColor(1);
   legend->SetTextFont(22); 
