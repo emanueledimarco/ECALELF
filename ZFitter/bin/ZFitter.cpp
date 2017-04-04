@@ -607,50 +607,88 @@ int main(int argc, char **argv)
 		} else categories.push_back((*region_itr) + "-" + commonCut.c_str());
 	}
 
-	//read corrections directly from file
-	if (vm.count("corrEleType") && corrEleFile != "") {
-		std::cout << "------------------------------------------------------------" << std::endl;
-		std::cout << "[STATUS] Getting energy scale corrections from file: " << corrEleFile << std::endl;
-		TString treeName = "scaleEle_" + corrEleType;
-		EnergyScaleCorrection_class eScaler(corrEleFile, 0, true, false);
+        //read corrections directly from file
+        if (vm.count("corrEleType") && corrEleFile != "") {
+          std::cout << "------------------------------------------------------------" << std::endl;
+          std::cout << "[STATUS] Getting energy scale corrections from file: " << corrEleFile << std::endl;
+          TString treeName = "scaleEle_" + corrEleType;
+          EnergyScaleCorrection_class eScaler(corrEleFile, 0, true, false);
 
-		for(tag_chain_map_t::iterator tag_chain_itr = tagChainMap.begin();
-		        tag_chain_itr != tagChainMap.end();
-		        tag_chain_itr++) {
-			if(tag_chain_itr->first.CompareTo("d") == 0 || !tag_chain_itr->first.Contains("d")) continue; //only data
-			if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
-			TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
+          for(tag_chain_map_t::iterator tag_chain_itr = tagChainMap.begin();
+              tag_chain_itr != tagChainMap.end();
+              tag_chain_itr++) {
+            if(tag_chain_itr->first.CompareTo("d") == 0 || !tag_chain_itr->first.Contains("d")) continue; //only data
+            if(tag_chain_itr->second.count(treeName) != 0) continue; //skip if already present
 
-			TString filename = "tmp/scaleEle_" + corrEleType + "_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
-			std::cout << "[STATUS] Saving electron scale corrections to root file:" << filename << std::endl;
+            TChain * ch = (tag_chain_itr->second.find("treeProducerWMassEle"))->second.get();
 
-			TFile f(filename, "recreate");
-			if(!f.IsOpen() || f.IsZombie()) {
-				std::cerr << "[ERROR] File for scale corrections: " << filename << " not opened" << std::endl;
-				exit(1);
-			}
-#ifdef toBeFixed
-			TTree *corrTree = eScaler.GetCorrTree(ch, "runNumber", "R9Eleprime");
-#else
-			TTree *corrTree = NULL;
-#endif
-			corrTree->SetName(TString("scaleEle_") + corrEleType.c_str());
-			corrTree->SetTitle(corrEleType.c_str());
-			f.cd();
-			corrTree->Write();
-			std::cout << "[INFO] Data entries: "    << ch->GetEntries() << std::endl;
-			std::cout << "       corrEle entries: " << corrTree->GetEntries() << std::endl;
-			delete corrTree;
+            TString filename = "tmp/scaleEle_" + corrEleType + "_" + tag_chain_itr->first + "-" + chainFileListTag + ".root";
+            std::cout << "[STATUS] Saving electron scale corrections to root file:" << filename << std::endl;
 
-			f.Write();
-			f.Close();
-			chain_map_t::iterator chain_itr = (tag_chain_itr->second.insert(make_pair(treeName, pTChain_t(new TChain(treeName))))).first;
-			chain_itr->second->SetTitle(tag_chain_itr->first);
-			chain_itr->second->Add(filename);
+            TFile f(filename, "recreate");
+            if(!f.IsOpen() || f.IsZombie()) {
+              std::cerr << "[ERROR] File for scale corrections: " << filename << " not opened" << std::endl;
+              exit(1);
+            }
 
-		} // end of data samples loop
-	} // end of corrEle loop
 
+            Int_t           runNumber;
+            Int_t           LepGood_pdgId[2];
+            Float_t         etaSCEle[2];
+            Float_t         r9[2];
+            Float_t         pt[2];
+
+            ch->SetBranchStatus("*",0);
+            ch->SetBranchStatus("run",1);
+            ch->SetBranchStatus("LepGood_r9",1);
+            ch->SetBranchStatus("LepGood_pdgId",1);
+            ch->SetBranchStatus("LepGood_eta",1);
+            ch->SetBranchStatus("LepGood_pt",1);
+
+            ch->SetBranchAddress("run", &runNumber);
+            ch->SetBranchAddress("LepGood_r9",    r9);
+            ch->SetBranchAddress("LepGood_pdgId", LepGood_pdgId);
+            ch->SetBranchAddress("LepGood_eta", etaSCEle);
+            ch->SetBranchAddress("LepGood_pt", pt);
+
+            ////////////////////////////****///////////////////////////////////////
+            //-> Put this in a function?//
+            //GetCorrTree does not exist anymore in EnergyScaleCorrection_class
+            Float_t scaleEle_[2];
+            scaleEle_[0]=-1.;
+            scaleEle_[1]=-1.;
+            TTree *corrTree = new TTree(treeName,""); //treeName is scaleEle_corrEleType
+            corrTree->Branch("scaleEle", scaleEle_, "scaleEle[2]/F");
+
+            Long64_t nentries = ch->GetEntries();
+            for(Long64_t ientry = 0; ientry < nentries; ientry++) {
+              //if(ientry%1000==0) std::cout << "Filling scale correction branch for entry " << ientry << std::endl;
+              ch->GetEntry(ientry);              
+              if(abs(LepGood_pdgId[0])==11 && abs(LepGood_pdgId[1])==11) {
+                scaleEle_[0]=eScaler.ScaleCorrection(runNumber, fabs(etaSCEle[0]) < 1.4442, r9[0], etaSCEle[0], pt[0]);
+                scaleEle_[1]=eScaler.ScaleCorrection(runNumber, fabs(etaSCEle[1]) < 1.4442, r9[1], etaSCEle[1], pt[1]);;
+              } else {
+                scaleEle_[0]=-1.;
+                scaleEle_[1]=-1.;
+              }
+              corrTree->Fill();
+            }
+            ch->SetBranchStatus("*", 1);
+            ch->ResetBranchAddresses();
+            ////////////////////////////****///////////////////////////////////////
+            corrTree->Write();
+            std::cout << "[INFO] Data entries: "    << ch->GetEntries() << std::endl;
+            std::cout << "       corrEle entries: " << corrTree->GetEntries() << std::endl;
+            delete corrTree;
+
+            f.Write();
+            f.Close();
+            chain_map_t::iterator chain_itr = (tag_chain_itr->second.insert(make_pair(treeName, pTChain_t(new TChain(treeName))))).first;
+            chain_itr->second->SetTitle(tag_chain_itr->first);
+            chain_itr->second->Add(filename);
+
+          } // end of data samples loop
+        } // end of corrEle loop
 
 	//read corrections directly from file
 	if (vm.count("smearEleType")) {
