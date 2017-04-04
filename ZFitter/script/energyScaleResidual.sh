@@ -464,44 +464,14 @@ if [ -n "${STEP5}" ];then
     basenameEE=`basename $regionFileEE .dat`
     outFile=${outDirTable}/step5${extension}-${invMass_var}-${newSelection}-${commonCut}.dat
 
-    if [ ! -e "${outDirTable}/${outFileStep2}" ];then
-        echo "Cerco in ${outDirTable} il file ${outFileStep2}"
-	echo "[ERROR] Impossible to run step5 without step2" >> /dev/stderr
-	exit 1
-    fi
-    
     #leave iniFile empty (or built it form step2 (to be checked)
     echo "initFile for step5 built from step2: ${outDirData}/step2/img/outProfile-`basename ${regionFileStep2EB} .dat`-${commonCut}-FitResult-.config goes into ${outDirTable}/params-step5-${commonCut}.txt"
     if [ -e "${outDirTable}/params-step5-${commonCut}.txt" ];then 
 	initFile="--initFile=${outDirTable}/params-step5-${commonCut}.txt"; 
     else 
-	echo "[WARNING] init file ${outDirTable}/params-step5-${commonCut}.txt not found" >> /dev/stderr
-	echo "          creating file from results of step2" >> /dev/stderr
-	echo "[WARNING] init file ${outDirTable}/params-step5-${commonCut}.txt not found" >> /dev/stdout
-	echo "          creating file from results of step2" >> /dev/stdout
-#
-#	    #Set constTerm excursion from 0 - 0.03 in the profile
-	    #Since you are running with constTermFix: smearings are NOT organized in Et bins
-	    grep constTerm ${outDirData}/step2/img/outProfile-`basename ${regionFileStep4EB} .dat`-${commonCut}-FitResult-.config |sed -r 's|\([.0-9]*[ ]+-[ ]+[.0-9]+\)|(0 - 0.03)|' > ${outDirTable}/params-step5-${commonCut}.txt
-#	    #Create init for alpha (to be fixed)
-#	    #grep constTerm ${outDirData}/step4/img/outProfile-`basename ${regionFileStep4EB} .dat`-${commonCut}-FitResult-.config |sed -r 's|constTerm|alpha|;s|= [0-9]+.+/- [.0-9]+ |= 1.0000 +/- 0.0100 |;s|\([.0-9]*[ ]+-[ ]+[.0-9]+\)|(0 - 0.20)|' >> ${outDirTable}/params-step5-${commonCut}.txt
-#	    #s|L|C L|
-	    if [ "${Et_smear}" == "" ];then
-	    #if not smearing Et -> put alpha constant at 0
-	    grep constTerm ${outDirData}/step2/img/outProfile-`basename ${regionFileStep2EB} .dat`-${commonCut}-FitResult-.config |sed -r 's|constTerm|alpha|;s|[.0-9]* [+]/- [.0-9]*|0.0000 +/- 0.0100 C|;s|\([.0-9]*[ ]+-[ ]+[.0-9]+\)|(0 - 0.20)|' >> ${outDirTable}/params-step5-${commonCut}.txt
-	    fi
-################EE
-	    grep constTerm ${outDirData}/step2/img/outProfile-`basename ${regionFileStep2EE} .dat`-${commonCut}-FitResult-.config |grep -v absEta_0_1 |sed -r 's|\([.0-9]*[ ]+-[ ]+[.0-9]+\)|(0 - 0.03)|' >> ${outDirTable}/params-step5-${commonCut}.txt
-#	    #Create init for alpha
-#	    #grep constTerm ${outDirData}/step2/img/outProfile-`basename ${regionFileStep2EE} .dat`-${commonCut}-FitResult-.config |grep -v absEta_0_1 |sed -r 's|constTerm|alpha|;s|= [0-9]+.+/- [.0-9]+ |= 1.0000 +/- 0.0100 |;s|\([.0-9]*[ ]+-[ ]+[.0-9]+\)|(0 - 0.20)|' >> ${outDirTable}/params-step5-${commonCut}.txt
-	    if [ "${Et_smear}" == "" ];then
-	    #if not smearing Et -> put alpha constant at 0
-	    grep constTerm ${outDirData}/step2/img/outProfile-`basename ${regionFileStep2EE} .dat`-${commonCut}-FitResult-.config |grep -v absEta_0_1 |sed -r 's|constTerm|alpha|;s|[.0-9]* [+]/- [.0-9]*|0.0000 +/- 0.0100 C|;s|\([.0-9]*[ ]+-[ ]+[.0-9]+\)|(0 - 0.20)|' >> ${outDirTable}/params-step5-${commonCut}.txt
-	    fi
-	    cat ${outDirTable}/params-step5-${commonCut}.txt
-	    initFile="--initFile=${outDirTable}/params-step5-${commonCut}.txt"; 
-	    #exit 0 #-> don't exit: first create the file, then run !
-	fi
+	echo "[WARNING] init file ${outDirTable}/params-step5-${commonCut}.txt not found"
+	echo "          creating empty"
+    fi
 
     echo "Categorization and job submission in step5 is done if ${outFile} does NOT exist"
     if [ ! -e "${outFile}" ];then
@@ -550,6 +520,16 @@ if [ -n "${STEP5}" ];then
 	  mkdir ${outDirData}/step5${extension}/${index}/img -p 
 	done
 
+    if [[ $scenario = "Test_job" ]]; then
+
+	  mkdir ${outDirData}/step5${extension}/fitres_test -p 
+
+	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --onlyScale --outDirFitResData=${outDirData}/step5${extension}/fitres_test
+	
+	./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --invMass_var ${invMass_var} --commonCut ${commonCut} --selection=${selection} --smearerFit --autoNsmear --autoBin --onlyScale --outDirFitResData=${outDirData}/step5${extension}/fitres_test
+
+    fi
+
 
     if [[ $scenario = "Submit_jobs" ]]; then
 
@@ -559,14 +539,14 @@ if [ -n "${STEP5}" ];then
 	    -eo ${outDirData}/step5${extension}/%I/fitres/`basename ${outFile} .dat`-${basenameEB}-stderr.log \
 	    -J "${basenameEB} step5${extension}[1-50]" \
 	      "cd $PWD; eval \`scramv1 runtime -sh\`; uname -a;  echo \$CMSSW_VERSION; 
-./bin/ZFitter.exe -f $outDirData/step5${extension}/`basename $configFile` --regionsFile ${regionFileEB} $isOdd $updateOnly --selection=${newSelection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/fitres --constTermFix  --smearerFit  ${Et_smear} --autoNsmear --autoBin ${initFile}   --profileOnly --plotOnly || exit 1; touch ${outDirData}/step5${extension}/\$LSB_JOBINDEX/`basename $regionFileEB .dat`-done"
+./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEB} $isOdd $updateOnly --selection=${newSelection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/fitres --smearerFit --autoNsmear --autoBin ${initFile} --onlyScale  --profileOnly --plotOnly || exit 1; touch ${outDirData}/step5${extension}/\$LSB_JOBINDEX/`basename $regionFileEB .dat`-done"
 
 	bsub -q cmscaf1nd \
 	    -oo ${outDirData}/step5${extension}/%I/fitres/`basename ${outFile} .dat`-${basenameEE}-stdout.log \
 	    -eo ${outDirData}/step5${extension}/%I/fitres/`basename ${outFile} .dat`-${basenameEE}-stderr.log \
 	    -J "${basenameEE} step5${extension}[1-50]" \
 	      "cd $PWD; eval \`scramv1 runtime -sh\`; uname -a;  echo \$CMSSW_VERSION; 
-./bin/ZFitter.exe -f $outDirData/step5${extension}/`basename $configFile` --regionsFile ${regionFileEE} $isOdd $updateOnly --selection=${newSelection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/fitres --constTermFix  --smearerFit  ${Et_smear} --autoNsmear --autoBin ${initFile}   --profileOnly --plotOnly || exit 1; touch ${outDirData}/step5${extension}/\$LSB_JOBINDEX/`basename $regionFileEE .dat`-done"
+./bin/ZFitter.exe -f $configFile --regionsFile ${regionFileEE} $isOdd $updateOnly --selection=${newSelection}  --invMass_var ${invMass_var} --commonCut ${commonCut} --outDirFitResMC=${outDirMC}/${extension}/fitres --outDirImgMC=${outDirMC}/${extension}/img --outDirImgData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/img/ --outDirFitResData=${outDirData}/step5${extension}/\$LSB_JOBINDEX/fitres  --smearerFit --autoNsmear --autoBin ${initFile} --onlyScale  --profileOnly --plotOnly || exit 1; touch ${outDirData}/step5${extension}/\$LSB_JOBINDEX/`basename $regionFileEE .dat`-done"
 
         exit
     fi

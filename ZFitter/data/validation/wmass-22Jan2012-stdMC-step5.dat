@@ -1,0 +1,24 @@
+############### This file is equivalent to Winter13-powheg.dat but with new trees with trigger and new selection
+########### standard MC
+##### Powheg
+s1	treeProducerWMassEle	root://eoscms//eos/cms/store/cmst3/group/susy/emanuele/wmass/trees/TREES_1LEP_53X_V1/DYJetsM50_treeProducerWMassEle_treeProducerWMassEle_tree.root
+########### Data
+d1	treeProducerWMassEle	root://eoscms//eos/cms/store/cmst3/group/susy/emanuele/wmass/trees/TREES_1LEP_53X_V1/DoubleElectronAB_treeProducerWMassEle_treeProducerWMassEle_tree.root
+d2	treeProducerWMassEle	root://eoscms//eos/cms/store/cmst3/group/susy/emanuele/wmass/trees/TREES_1LEP_53X_V1/DoubleElectronC_treeProducerWMassEle_treeProducerWMassEle_tree.root
+d3	treeProducerWMassEle	root://eoscms//eos/cms/store/cmst3/group/susy/emanuele/wmass/trees/TREES_1LEP_53X_V1/DoubleElectronD_treeProducerWMassEle_treeProducerWMassEle_tree.root
+########### Friend trees
+##### Scale correction trees
+d1	scaleEle_EtaR9	test/dato/wmass-22Jan2012-stdMC/LooseEleID/mZ1/step2/fitres/scaleEle_EtaR9_d1-wmass-22Jan2012-stdMC.root
+d2	scaleEle_EtaR9	test/dato/wmass-22Jan2012-stdMC/LooseEleID/mZ1/step2/fitres/scaleEle_EtaR9_d2-wmass-22Jan2012-stdMC.root
+d3	scaleEle_EtaR9	test/dato/wmass-22Jan2012-stdMC/LooseEleID/mZ1/step2/fitres/scaleEle_EtaR9_d3-wmass-22Jan2012-stdMC.root
+##### Smearer category trees
+#
+d1      smearerCat_scaleStep2smearing_8 data/smearerCat/smearerCat_scaleStep2smearing_8_d1-wmass-22Jan2012-stdMC.root
+d2      smearerCat_scaleStep2smearing_8 data/smearerCat/smearerCat_scaleStep2smearing_8_d2-wmass-22Jan2012-stdMC.root
+d3      smearerCat_scaleStep2smearing_8 data/smearerCat/smearerCat_scaleStep2smearing_8_d3-wmass-22Jan2012-stdMC.root
+s1      smearerCat_scaleStep2smearing_8 data/smearerCat/smearerCat_scaleStep2smearing_8_s1-wmass-22Jan2012-stdMC.root
+#
+d1      smearerCat_scaleStep2smearing_9 data/smearerCat/smearerCat_scaleStep2smearing_9_d1-wmass-22Jan2012-stdMC.root
+d2      smearerCat_scaleStep2smearing_9 data/smearerCat/smearerCat_scaleStep2smearing_9_d2-wmass-22Jan2012-stdMC.root
+d3      smearerCat_scaleStep2smearing_9 data/smearerCat/smearerCat_scaleStep2smearing_9_d3-wmass-22Jan2012-stdMC.root
+s1      smearerCat_scaleStep2smearing_9 data/smearerCat/smearerCat_scaleStep2smearing_9_s1-wmass-22Jan2012-stdMC.root
